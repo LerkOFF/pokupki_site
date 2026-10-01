@@ -14,6 +14,8 @@ switch ($path) {
         readfile($root . '/shopping-list.html');
         return true;
     case '/pokupki/api':
+        // POKUPKI_DELAY_MS=3000 slows list requests down to imitate a poor connection.
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && getenv('POKUPKI_DELAY_MS')) usleep((int)getenv('POKUPKI_DELAY_MS') * 1000);
         require $root . '/shopping-api.php';
         return true;
     case '/pokupki/photo':

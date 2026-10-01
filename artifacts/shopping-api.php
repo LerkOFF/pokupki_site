@@ -11,7 +11,15 @@ try {
         foreach ($db->query('SELECT id, data FROM items ORDER BY id') as $row) {
             $items[] = ['id' => $row['id']] + json_decode($row['data'], true, 512, JSON_THROW_ON_ERROR);
         }
-        echo json_encode($items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $json = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        // The page asks every 2 seconds. A browser revalidates with If-None-Match and gets an empty 304 while nothing changed.
+        // The ETag is weak on purpose: nginx weakens strong ones when it compresses.
+        $tag = md5($json);
+        header('Cache-Control: private, no-cache');
+        header('Vary: Cookie');
+        header('ETag: W/"' . $tag . '"');
+        if (str_contains($_SERVER['HTTP_IF_NONE_MATCH'] ?? '', $tag)) { http_response_code(304); exit; }
+        echo $json;
         exit;
     }
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }

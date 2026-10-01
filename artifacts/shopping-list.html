@@ -6,7 +6,8 @@
 <title>Продукты на неделю</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap"></noscript>
 <script>
   try { var t = localStorage.getItem('theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
 </script>
@@ -1536,7 +1537,7 @@ h1 .hand {
 
   // The phone picture is shrunk and re-encoded before upload: faster, and no EXIF or odd formats reach the server.
   async function shrink(file) {
-    const MAX = 1600;
+    const MAX = 1024;   // enough for a phone screen; the server shrinks to the same size
     let src;
     try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
     catch (e) {
@@ -1558,8 +1559,11 @@ h1 .hand {
     g.fillRect(0, 0, canvas.width, canvas.height);
     g.drawImage(src, 0, 0, canvas.width, canvas.height);
     if (src.close) src.close();
-    return new Promise((resolve, reject) =>
-      canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Не удалось обработать фото.'))), 'image/jpeg', 0.82));
+    const encode = q => new Promise((resolve, reject) =>
+      canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Не удалось обработать фото.'))), 'image/jpeg', q));
+    let blob = await encode(0.75);
+    if (blob.size > 250000) blob = await encode(0.6);   // a busy picture: a little less quality for a quick upload
+    return blob;
   }
 
   function renderPhotoGrid() {
@@ -1794,6 +1798,7 @@ h1 .hand {
 
   // ---------- login ----------
   function requireLogin() {
+    clearCache();
     status = 'auth';
     items = new Map();
     archive = new Map();
@@ -1851,6 +1856,12 @@ h1 .hand {
   });
 
   // ---------- data ----------
+  // The last list is kept on this device: the next visit shows it at once, then the network confirms or updates it.
+  const CACHE_KEY = 'items-cache-v1';
+  const readCache = () => { try { const v = JSON.parse(localStorage.getItem(CACHE_KEY)); return Array.isArray(v) ? v : null; } catch (e) { return null; } };
+  const writeCache = data => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {} };
+  const clearCache = () => { try { localStorage.removeItem(CACHE_KEY); } catch (e) {} };
+
   render();
 
   let resubscribes = 0;
@@ -1871,6 +1882,7 @@ h1 .hand {
       for (const id of [...lingering.keys()]) if (!items.has(id)) unlinger(id);
       if (openId && !items.has(openId)) openId = null;
       status = 'ready';
+      if (writeHint) canWrite = true;   // a bad moment on the network at start must not lock editing until reload
       render();
     }, err => {
       if (err && err.code === 'auth') { requireLogin(); return; }
@@ -1891,7 +1903,7 @@ h1 .hand {
   (async () => {
     async function request(method = 'GET', body) {
       const response = await fetch('/pokupki/api', {
-        method, cache: 'no-store', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        method, cache: method === 'GET' ? 'no-cache' : 'no-store', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined
       });
       if (response.status === 401) throw authError();
@@ -1899,12 +1911,14 @@ h1 .hand {
       return response.json();
     }
     let receive = null, fail = null, previous = '';
+    const docsOf = data => ({ docs: data.map(item => ({ id: item.id, exists: true, data: () => item })) });
     async function refresh() {
       const data = await request();
       const encoded = JSON.stringify(data);
       if (receive && encoded !== previous) {
         previous = encoded;
-        receive({ docs: data.map(item => ({ id: item.id, exists: true, data: () => item })) });
+        writeCache(data);
+        receive(docsOf(data));
       }
     }
     async function mutate(body) { const result = await request('POST', body); await refresh(); return result; }
@@ -1931,6 +1945,8 @@ h1 .hand {
     writeHint = true;
     canWrite = true;
     subscribe();
+    const cached = readCache();
+    if (cached) { previous = JSON.stringify(cached); receive(docsOf(cached)); }
   })();
 })();
 </script>

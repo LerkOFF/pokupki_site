@@ -4,8 +4,10 @@ require __DIR__ . '/shopping-lib.php';
 
 const PHOTO_MAX_BYTES = 4000000;   // request body; the page shrinks photos before sending
 const PHOTO_MAX_SIDE_IN = 8000;    // refuse huge pictures before decoding them
-const PHOTO_SIDE = 1600;
-const PHOTO_THUMB = 240;
+const PHOTO_SIDE = 1024;           // what is stored and shown in the gallery: enough for a phone screen, light on a slow network
+const PHOTO_QUALITY = 74;
+const PHOTO_THUMB = 160;           // list thumbnail, shown at 44 px
+const PHOTO_THUMB_QUALITY = 68;
 const PHOTOS_PER_ITEM = 12;
 
 function photo_fail(int $code, string $message = ''): never {
@@ -43,7 +45,7 @@ if ($method === 'GET') {
     if ($thumb && !is_file($path) && is_file(pokupki_photo_path($id))) {
         try {
             $full = imagecreatefromjpeg(pokupki_photo_path($id));
-            if ($full !== false) photo_save($full, PHOTO_THUMB, $path, 78);
+            if ($full !== false) photo_save($full, PHOTO_THUMB, $path, PHOTO_THUMB_QUALITY);
         } catch (Throwable $e) { error_log('pokupki thumb: ' . $e->getMessage()); }
     }
     if (!is_file($path)) photo_fail(404);
@@ -90,7 +92,8 @@ try {
 
     if ($op === 'add') {
         if (count($photos) >= PHOTOS_PER_ITEM) { $db->exec('ROLLBACK'); photo_fail(409, 'У продукта уже ' . PHOTOS_PER_ITEM . ' фото'); }
-        photo_save($img, PHOTO_SIDE, $jpegPath, 82);
+        photo_save($img, PHOTO_SIDE, $jpegPath, PHOTO_QUALITY);
+        photo_save($img, PHOTO_THUMB, pokupki_photo_path($photo, true), PHOTO_THUMB_QUALITY);   // so the list never waits for a first-view resize
         $photos[] = $photo;
     } else {
         $at = array_search($photo, $photos, true);
@@ -107,7 +110,7 @@ try {
     header('Cache-Control: no-store');
     echo json_encode(['photo' => $photo, 'photos' => $photos]);
 } catch (Throwable $e) {
-    if ($jpegPath !== null) @unlink($jpegPath);
+    if ($jpegPath !== null) { @unlink($jpegPath); @unlink(pokupki_photo_path($photo, true)); }
     error_log('pokupki photo: ' . $e->getMessage());
     photo_fail(500, 'Не удалось сохранить фото');
 }
