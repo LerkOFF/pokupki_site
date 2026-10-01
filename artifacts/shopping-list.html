@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Продукты на неделю</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<script>
+  try { var t = localStorage.getItem('theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+/* Layout: one narrow column of category cards; summary on top, mode switch and "+" docked at the bottom under the thumb. */
+:root {
+  --bg: #F2F4EE;          /* sage-tinted paper */
+  --surface: #FFFFFF;
+  --surface-2: #E7ECE2;
+  --seg-on: #FFFFFF;      /* selected tab */
+  --ink: #1D2620;
+  --ink-2: #5A675F;
+  --line: #CCD5C6;
+  --basil: #2E7A4C;       /* есть дома */
+  --on-basil: #FFFFFF;
+  --yolk: #EFA92A;        /* нужно купить */
+  --yolk-soft: #F7E3B3;   /* недостающая часть на ползунке */
+  --on-yolk: #2A2108;
+  --danger: #B3402C;
+  --toast-bg: #1D2620;
+  --toast-fg: #F2F4EE;
+  --toast-action: #F4B63F;
+  --scrim: rgba(18, 24, 20, .45);
+  --shadow: 0 1px 2px rgba(29, 38, 32, .08), 0 6px 18px rgba(29, 38, 32, .08);
+
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111713; --surface: #19211C; --surface-2: #232D26; --seg-on: #34413A; --ink: #E6ECE5; --ink-2: #9CA9A0;
+    --line: #34413A; --basil: #6CC08C; --on-basil: #0F1511; --yolk: #E9B54A; --yolk-soft: #4A3B1A; --on-yolk: #2A2108;
+    --danger: #E47D65; --toast-bg: #E6ECE5; --toast-fg: #111713; --toast-action: #2E7A4C;
+    --scrim: rgba(0, 0, 0, .6); --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111713; --surface: #19211C; --surface-2: #232D26; --seg-on: #34413A; --ink: #E6ECE5; --ink-2: #9CA9A0;
+  --line: #34413A; --basil: #6CC08C; --on-basil: #0F1511; --yolk: #E9B54A; --yolk-soft: #4A3B1A; --on-yolk: #2A2108;
+  --danger: #E47D65; --toast-bg: #E6ECE5; --toast-fg: #111713; --toast-action: #2E7A4C;
+  --scrim: rgba(0, 0, 0, .6); --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .2s ease, color .2s ease;
+}
+button { font: inherit; color: inherit; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.app {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 20px 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- header ---------- */
+.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+h1 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 7vw, 2.1rem);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+h1 .hand {
+  display: block;
+  margin-top: 2px;
+  padding-left: .4em;
+  font-family: var(--f-hand);
+  font-weight: 600;
+  font-size: 1.05em;
+  letter-spacing: 0;
+  color: var(--basil);
+  transform: rotate(-3deg);
+  transform-origin: left center;
+}
+.icon-btn {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.pill {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: .875rem; font-weight: 600;
+  cursor: pointer;
+}
+.pill svg { width: 15px; height: 15px; }
+.pill[aria-pressed="true"] { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
+.pill:focus-visible, .icon-btn:focus-visible, .seg button:focus-visible, .fab:focus-visible, .btn:focus-visible,
+.linkbtn:focus-visible, .toast button:focus-visible, .step:focus-visible, .qbtn:focus-visible {
+  outline: 2px solid var(--basil); outline-offset: 2px;
+}
+
+/* ---------- summary ---------- */
+.summary { display: flex; flex-direction: column; gap: 10px; }
+.sum-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sum-main { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.big {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 2.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.sum-label { color: var(--ink-2); font-weight: 500; }
+.sum-money { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meter { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.meter span { display: block; height: 100%; width: 0; background: var(--basil); border-radius: inherit; transition: width .35s ease; }
+.sum-hint { margin: 0; font-size: .875rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mode-hint {
+  flex: 1; min-width: 0;
+  margin: 0;
+  font-size: .9375rem;
+  color: var(--ink-2);
+  display: flex; align-items: flex-start; gap: 8px;
+  text-wrap: pretty;
+}
+.mode-hint::before {
+  content: ""; flex-shrink: 0;
+  width: 8px; height: 8px; margin-top: .45em; border-radius: 50%;
+  background: var(--yolk);
+}
+.mode-hint.edit::before { background: var(--basil); }
+
+/* ---------- list ---------- */
+.list { display: flex; flex-direction: column; gap: 14px; }
+.sec {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.sec-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 14px 16px 4px;
+}
+.sec-head h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: .95rem;
+  text-wrap: balance;
+}
+.sec-meta { font-size: .8125rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.items { list-style: none; margin: 0; padding: 0 0 6px; }
+
+.item { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .26s ease, opacity .26s ease, background-color .15s ease; }
+.item-in { overflow: hidden; min-height: 0; }
+.item.collapse { grid-template-rows: 0fr; opacity: 0; }
+.item.open { background: var(--surface-2); }
+
+.row { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: stretch; }
+.tick-btn, .row-btn { border: 0; background: transparent; cursor: pointer; min-height: 52px; }
+.tick-btn { display: grid; place-items: center; padding: 0 0 0 4px; }
+.row-btn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px 11px 2px;
+  text-align: left;
+}
+.tick-btn:focus-visible, .row-btn:focus-visible { outline: 2px solid var(--basil); outline-offset: -3px; border-radius: 12px; }
+.tick-btn[aria-disabled="true"], .row-btn[aria-disabled="true"] { cursor: default; }
+
+.tick {
+  --p: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--yolk);
+  background: conic-gradient(var(--basil) calc(var(--p) * 100%), transparent 0);
+  box-shadow: inset 0 0 0 2px var(--surface);
+  display: grid; place-items: center;
+  color: var(--on-basil);
+  transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+}
+.item.open .tick { box-shadow: inset 0 0 0 2px var(--surface-2); }
+.tick-btn:active .tick { transform: scale(.9); }
+.tick svg { width: 14px; height: 14px; opacity: 0; transform: scale(.5); transition: opacity .15s ease, transform .15s ease; }
+.is-full .tick { background: var(--basil); border-color: var(--basil); box-shadow: none; }
+.is-full .tick svg { opacity: 1; transform: none; }
+.tick.pen, .is-full .tick.pen { background: transparent; border-color: var(--line); box-shadow: none; color: var(--ink-2); }
+.tick.pen svg { opacity: 1; transform: none; width: 13px; height: 13px; }
+
+.item-main { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.name { font-weight: 500; overflow-wrap: anywhere; }
+.leader { flex: 1 1 12px; min-width: 12px; border-bottom: 2px dotted var(--line); transform: translateY(-4px); }
+.qty { font-size: .875rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qty b { color: var(--basil); font-weight: 700; }
+.price { min-width: 4.4rem; text-align: right; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.is-full .name { color: var(--ink-2); font-weight: 400; }
+.is-full .price { color: var(--ink-2); font-weight: 500; }
+
+/* ---------- quantity panel ---------- */
+.panel {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 0 16px 14px;
+  scroll-margin-bottom: 110px;
+}
+.panel-head {
+  display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px;
+  font-size: .875rem; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.p-have b { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; color: var(--ink); }
+.p-miss { font-weight: 600; color: var(--ink); }
+.p-miss.done { color: var(--basil); }
+.stepper { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 10px; }
+.step {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 1.35rem; line-height: 1; font-weight: 500;
+  cursor: pointer;
+}
+.step[aria-disabled="true"] { opacity: .4; cursor: default; }
+
+.range {
+  --fill: 0%;
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 44px; margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.range:focus { outline: none; }
+.range::-webkit-slider-runnable-track {
+  height: 12px; border-radius: 99px;
+  background: linear-gradient(to right, var(--basil) var(--fill), var(--yolk-soft) var(--fill));
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 30px; height: 30px; margin-top: -9px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--basil);
+  box-shadow: var(--shadow);
+}
+.range:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--ink); outline-offset: 2px; }
+.range::-moz-range-track { height: 12px; border-radius: 99px; background: var(--yolk-soft); }
+.range::-moz-range-progress { height: 12px; border-radius: 99px; background: var(--basil); }
+.range::-moz-range-thumb {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--basil);
+  box-shadow: var(--shadow);
+}
+.range:focus-visible::-moz-range-thumb { outline: 2px solid var(--ink); outline-offset: 2px; }
+.quick { display: flex; gap: 8px; }
+.qbtn {
+  flex: 1;
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: .875rem; font-weight: 600;
+  cursor: pointer;
+}
+
+.state {
+  margin: 0;
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  text-wrap: balance;
+}
+.state strong { display: block; margin-bottom: 4px; color: var(--ink); font-family: var(--f-display); font-weight: 500; font-size: 1rem; }
+
+.foot { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 4px; }
+.linkbtn {
+  border: 0; background: none; padding: 8px 4px;
+  color: var(--ink-2); font-size: .875rem;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line);
+  cursor: pointer;
+}
+.confirm { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; font-size: .875rem; color: var(--ink); }
+
+/* ---------- dock ---------- */
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+.dock-in { max-width: 32rem; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+.seg {
+  flex: 1; min-width: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--surface-2);
+}
+.seg button {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px;
+  padding: 8px;
+  border: 0; border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  font-weight: 600; font-size: .9375rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.seg button[aria-selected="true"] { background: var(--seg-on); color: var(--ink); box-shadow: var(--shadow); }
+.badge {
+  min-width: 22px; height: 22px; padding: 0 6px;
+  display: inline-grid; place-items: center;
+  border-radius: 99px;
+  background: var(--yolk); color: var(--on-yolk);
+  font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.fab {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 16px;
+  background: var(--basil); color: var(--on-basil);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.fab svg { width: 22px; height: 22px; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed; left: 16px; right: 16px; z-index: 20;
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  max-width: 30rem; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 8px 10px 16px;
+  border-radius: 14px;
+  background: var(--toast-bg); color: var(--toast-fg);
+  box-shadow: var(--shadow);
+  font-size: .9375rem;
+  animation: rise .2s ease-out;
+}
+.toast span { min-width: 0; overflow-wrap: anywhere; }
+.toast button {
+  flex-shrink: 0;
+  border: 0; background: none; padding: 8px 10px; border-radius: 10px;
+  color: var(--toast-action); font-weight: 700; cursor: pointer;
+}
+
+/* ---------- sheet ---------- */
+.sheet-wrap { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.scrim { position: absolute; inset: 0; background: var(--scrim); }
+.sheet {
+  position: relative;
+  width: 100%; max-width: 34rem; max-height: 92%;
+  overflow: auto;
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 20px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: var(--surface);
+  animation: rise .22s ease-out;
+}
+@media (min-width: 40rem) {
+  .sheet-wrap { align-items: center; padding: 16px; }
+  .sheet { border-radius: 22px; padding-bottom: 20px; }
+}
+.sheet h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: .8125rem; font-weight: 500; color: var(--ink-2); }
+.field input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--bg); color: var(--ink);
+  font: inherit; font-size: 1rem; font-weight: 400;
+}
+.field input:focus { outline: 2px solid var(--basil); outline-offset: 0; border-color: transparent; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; }
+.field-note { margin: -6px 0 0; font-size: .8125rem; color: var(--ink-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.chips legend { padding: 0; margin-bottom: 8px; font-size: .8125rem; font-weight: 500; color: var(--ink-2); }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  font-size: .875rem; cursor: pointer;
+}
+.chip input:checked + span { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
+.chip input:focus-visible + span { outline: 2px solid var(--basil); outline-offset: 2px; }
+.sheet-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+.sheet-actions .grow { flex: 1; }
+.btn {
+  min-height: 46px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn.primary { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
+.btn.danger { border-color: transparent; background: transparent; color: var(--danger); padding-inline: 8px; }
+.btn.danger.armed { background: var(--danger); color: var(--surface); padding-inline: 14px; }
+.btn.small { min-height: 36px; padding: 6px 12px; border-radius: 10px; font-size: .875rem; }
+.form-err { margin: 0; color: var(--danger); font-size: .875rem; }
+
+@keyframes rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <h1>Продукты <span class="hand">на неделю</span></h1>
+    <button type="button" class="icon-btn" id="themeBtn" aria-label="Сменить тему"></button>
+  </header>
+
+  <section class="summary" aria-live="polite">
+    <div class="sum-row">
+      <div class="sum-main">
+        <span class="big" id="needCount">—</span>
+        <span class="sum-label" id="needLabel">загружаю список</span>
+      </div>
+      <span class="sum-money" id="needMoney"></span>
+    </div>
+    <div class="meter" aria-hidden="true"><span id="meterFill"></span></div>
+    <p class="sum-hint" id="sumHint">&nbsp;</p>
+  </section>
+
+  <div class="toolbar">
+    <p class="mode-hint" id="modeHint" hidden></p>
+    <button type="button" class="pill" id="editBtn" aria-pressed="false" hidden>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>
+      <span id="editLabel">Изменить</span>
+    </button>
+  </div>
+
+  <main class="list" id="list"></main>
+  <p class="state" id="state"><strong>Загружаю список…</strong>Сейчас подтянутся продукты.</p>
+
+  <div class="foot" id="foot" hidden>
+    <button type="button" class="linkbtn" id="resetBtn">Новая неделя: обнулить всё, что дома</button>
+    <div class="confirm" id="resetConfirm" hidden>
+      <span>Все продукты снова станут «купить». Точно?</span>
+      <button type="button" class="btn small primary" id="resetYes">Да, обнулить</button>
+      <button type="button" class="btn small" id="resetNo">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<nav class="dock" aria-label="Режим списка">
+  <div class="dock-in">
+    <div class="seg" role="tablist">
+      <button type="button" role="tab" id="modeAll" aria-selected="true">Весь список</button>
+      <button type="button" role="tab" id="modeShop" aria-selected="false">В магазин <span class="badge" id="shopBadge" hidden>0</span></button>
+    </div>
+    <button type="button" class="fab" id="addBtn" aria-label="Добавить продукт" hidden>
+      <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M11 4v14M4 11h14"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" hidden>
+  <span id="toastText"></span>
+  <button type="button" id="toastAction" hidden>Вернуть</button>
+</div>
+
+<div class="sheet-wrap" id="sheet" hidden>
+  <div class="scrim" data-close></div>
+  <form class="sheet" id="form" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" novalidate>
+    <h2 id="sheetTitle">Новый продукт</h2>
+    <label class="field">Название
+      <input id="fName" name="name" autocomplete="off" maxlength="40" placeholder="например, сметана" required>
+    </label>
+    <div class="row3">
+      <label class="field">Нужно
+        <input id="fNeed" name="need" type="number" inputmode="numeric" min="1" max="999" step="1" placeholder="1">
+      </label>
+      <label class="field">Ед.
+        <input id="fUnit" name="unit" autocomplete="off" maxlength="8" list="units" placeholder="шт.">
+      </label>
+      <label class="field">Цена, ₽
+        <input id="fPrice" name="price" type="number" inputmode="numeric" min="0" max="999999" step="1" placeholder="0">
+      </label>
+    </div>
+    <p class="field-note">Сколько нужно на неделю и сколько это стоит целиком.</p>
+    <datalist id="units">
+      <option value="шт."></option>
+      <option value="уп."></option>
+      <option value="кг"></option>
+      <option value="л"></option>
+      <option value="бут."></option>
+    </datalist>
+    <fieldset class="chips" id="fCats">
+      <legend>Раздел</legend>
+    </fieldset>
+    <p class="form-err" id="formErr" hidden></p>
+    <div class="sheet-actions">
+      <button type="button" class="btn danger" id="delBtn" hidden>Удалить</button>
+      <span class="grow"></span>
+      <button type="button" class="btn" data-close>Отмена</button>
+      <button type="submit" class="btn primary" id="saveBtn">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(() => {
+  const CATS = [
+    { key: 'basic',   label: 'Основные продукты' },
+    { key: 'meat',    label: 'Мясные продукты' },
+    { key: 'dairy',   label: 'Молочные продукты' },
+    { key: 'bakery',  label: 'Хлеб и выпечка' },
+    { key: 'produce', label: 'Овощи и фрукты' },
+    { key: 'extra',   label: 'Дополнительно' },
+  ];
+  const CAT_KEYS = new Set(CATS.map(c => c.key));
+  const MAX_NEED = 999;
+  const ICON_CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-6.5"/></svg>';
+  const ICON_PEN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
+  const ICON_MOON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"/></svg>';
+  const ICON_SUN = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/></svg>';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $ = id => document.getElementById(id);
+  const els = {
+    list: $('list'), state: $('state'), foot: $('foot'),
+    needCount: $('needCount'), needLabel: $('needLabel'), needMoney: $('needMoney'),
+    meterFill: $('meterFill'), sumHint: $('sumHint'), modeHint: $('modeHint'),
+    modeAll: $('modeAll'), modeShop: $('modeShop'), shopBadge: $('shopBadge'),
+    addBtn: $('addBtn'), editBtn: $('editBtn'), editLabel: $('editLabel'), themeBtn: $('themeBtn'),
+    toast: $('toast'), toastText: $('toastText'), toastAction: $('toastAction'),
+    sheet: $('sheet'), form: $('form'), sheetTitle: $('sheetTitle'),
+    fName: $('fName'), fNeed: $('fNeed'), fUnit: $('fUnit'), fPrice: $('fPrice'), fCats: $('fCats'),
+    formErr: $('formErr'), delBtn: $('delBtn'), saveBtn: $('saveBtn'),
+    resetBtn: $('resetBtn'), resetConfirm: $('resetConfirm'), resetYes: $('resetYes'), resetNo: $('resetNo'),
+  };
+
+  // ---------- state ----------
+  let db = null;
+  let status = 'loading';        // loading | ready | unavailable
+  let canWrite = false;
+  let writeHint = null;          // what the platform said about writing: true | false | null
+  let items = new Map();         // id -> { id, name, need, unit, have, price, cat, order, legacy }
+  let mode = 'all';              // all | shop
+  let editing = false;
+  let openId = null;             // row whose slider is open
+  const local = new Map();       // id -> have, shown before the store confirms it
+  const dirty = new Set();       // ids whose local value is not sent yet
+  const settled = new Set();     // ids written but not yet seen back in a snapshot
+  const writeTimers = new Map(); // id -> timer, coalesces slider and +/- bursts into one write
+  const gestureStart = new Map();// id -> have when a slider or +/- burst began (for undo)
+  const lastBefore = new Map();  // id -> have before "взял всё" in the store
+  const lingering = new Map();   // id -> timer; just-bought rows stay visible briefly in shop mode
+  const chains = new Map();      // id -> promise, one write at a time per document
+  let holdList = false;          // a slider is being dragged: don't rebuild the list under the finger
+  let listStale = false;
+  let dragId = null;
+
+  try { if (localStorage.getItem('mode') === 'shop') mode = 'shop'; } catch (e) {}
+
+  // ---------- helpers ----------
+  const fmt = new Intl.NumberFormat('ru-RU');
+  const rub = n => fmt.format(n) + ' ₽';
+  const plural = (n, one, few, many) => {
+    const a = n % 10, b = n % 100;
+    if (a === 1 && b !== 11) return one;
+    if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return few;
+    return many;
+  };
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const priceOf = it => (Number.isFinite(+it.price) ? Math.max(0, +it.price) : 0);
+  const catOf = it => (CAT_KEYS.has(it.cat) ? it.cat : 'extra');
+  const haveOf = it => clamp(local.has(it.id) ? local.get(it.id) : it.have, 0, it.need);
+  const missOf = it => it.need - haveOf(it);
+  const missCost = it => Math.round(priceOf(it) * missOf(it) / it.need);
+  const amount = (n, unit) => (unit ? `${fmt.format(n)} ${unit}` : fmt.format(n));
+  const showsQty = it => !!it.unit || it.need > 1;
+  const byOrder = (a, b) => (+a.order || 0) - (+b.order || 0) || String(a.name).localeCompare(String(b.name), 'ru');
+  const el = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+  const rowOf = id => els.list.querySelector(`[data-id="${CSS.escape(id)}"]`);
+
+  function parseItem(id, data) {
+    let need = Number(data.need);
+    let unit = typeof data.unit === 'string' ? data.unit.trim() : '';
+    let legacy = false;
+    if (!(need >= 1)) {
+      // older rows kept the amount as text, e.g. "30 шт."
+      legacy = true;
+      const text = typeof data.qty === 'string' ? data.qty.trim() : '';
+      const m = text.match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+      need = m ? parseFloat(m[1].replace(',', '.')) : 1;
+      unit = m ? m[2].trim() : text;
+    }
+    need = clamp(Math.round(need) || 1, 1, MAX_NEED);
+    let have = Number(data.have);
+    if (!Number.isFinite(have)) have = data.home ? need : 0;
+    return {
+      id,
+      name: typeof data.name === 'string' ? data.name : '',
+      need, unit,
+      have: clamp(Math.round(have), 0, need),
+      price: data.price,
+      cat: data.cat,
+      order: data.order,
+      legacy,
+    };
+  }
+
+  // ---------- theme ----------
+  const root = document.documentElement;
+  const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
+  const currentTheme = () => {
+    const t = root.getAttribute('data-theme');
+    return t === 'dark' || t === 'light' ? t : (darkMq.matches ? 'dark' : 'light');
+  };
+  function paintThemeBtn() {
+    const dark = currentTheme() === 'dark';
+    const label = dark ? 'Включить светлую тему' : 'Включить тёмную тему';
+    els.themeBtn.innerHTML = dark ? ICON_SUN : ICON_MOON;
+    els.themeBtn.setAttribute('aria-label', label);
+    els.themeBtn.title = label;
+  }
+  els.themeBtn.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  });
+  if (darkMq.addEventListener) darkMq.addEventListener('change', paintThemeBtn);
+  new MutationObserver(paintThemeBtn).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  paintThemeBtn();
+
+  // ---------- render ----------
+  function render() {
+    renderSummary();
+    renderChrome();
+    if (holdList) { listStale = true; return; }
+    listStale = false;
+    renderList();
+  }
+
+  function renderSummary() {
+    const all = [...items.values()];
+    const total = all.length;
+    const toBuy = all.filter(it => missOf(it) > 0);
+    const full = total - toBuy.length;
+    const partial = toBuy.filter(it => haveOf(it) > 0).length;
+    const money = toBuy.reduce((s, it) => s + missCost(it), 0);
+    const stock = total ? all.reduce((s, it) => s + haveOf(it) / it.need, 0) / total : 0;
+    const ready = status === 'ready';
+
+    els.needCount.textContent = ready ? String(toBuy.length) : '—';
+    if (!ready) els.needLabel.textContent = status === 'loading' ? 'загружаю список' : 'список недоступен';
+    else if (!total) els.needLabel.textContent = 'список пуст';
+    else if (!toBuy.length) els.needLabel.textContent = 'всё есть дома';
+    else els.needLabel.textContent = plural(toBuy.length, 'продукт', 'продукта', 'продуктов') + ' купить';
+    els.needMoney.textContent = ready && money ? '≈ ' + rub(money) : '';
+    els.meterFill.style.width = (stock * 100).toFixed(1) + '%';
+    els.sumHint.textContent = ready && total
+      ? `Всё есть: ${full} из ${total}` + (partial ? ` · частично: ${partial}` : '')
+      : ' ';
+    els.shopBadge.textContent = String(toBuy.length);
+    els.shopBadge.hidden = !ready || !toBuy.length;
+  }
+
+  function renderChrome() {
+    const ready = status === 'ready';
+    const total = items.size;
+    els.modeAll.setAttribute('aria-selected', String(mode === 'all'));
+    els.modeShop.setAttribute('aria-selected', String(mode === 'shop'));
+    els.editBtn.hidden = !(ready && canWrite && total);
+    els.addBtn.hidden = !(ready && canWrite);
+    els.editBtn.setAttribute('aria-pressed', String(editing));
+    els.editLabel.textContent = editing ? 'Готово' : 'Изменить';
+    const anyHome = [...items.values()].some(it => haveOf(it) > 0);
+    els.foot.hidden = !(ready && canWrite && anyHome && mode === 'all' && !editing);
+    els.modeHint.classList.toggle('edit', editing);
+    els.modeHint.hidden = !ready || !total;
+    els.modeHint.textContent = editing
+      ? 'Нажмите на продукт, чтобы поменять или удалить его.'
+      : !canWrite
+        ? 'У вас доступ только на просмотр.'
+        : mode === 'shop'
+          ? 'Кружок — взяли всё. Нажмите на строку, если взяли только часть.'
+          : 'Кружок — есть всё. Нажмите на строку, чтобы указать остаток.';
+  }
+
+  function renderList() {
+    const all = [...items.values()].sort(byOrder);
+    const shopView = mode === 'shop' && !editing;
+
+    // keep keyboard focus across re-renders
+    const ae = document.activeElement;
+    const focusId = ae && ae.closest ? ae.closest('[data-id]')?.dataset.id : null;
+    const focusRole = ae && ae.dataset ? ae.dataset.role : null;
+
+    els.list.replaceChildren();
+    let shown = 0;
+    for (const cat of CATS) {
+      const inCat = all.filter(it => catOf(it) === cat.key);
+      const visible = shopView ? inCat.filter(it => missOf(it) > 0 || lingering.has(it.id)) : inCat;
+      if (!visible.length) continue;
+      shown += visible.length;
+
+      const sec = el('section', 'sec');
+      const head = el('div', 'sec-head');
+      head.append(el('h2', null, cat.label));
+      if (shopView) {
+        const sum = inCat.reduce((s, it) => s + missCost(it), 0);
+        if (sum) head.append(el('span', 'sec-meta', rub(sum)));
+      } else {
+        const full = inCat.filter(it => missOf(it) <= 0).length;
+        head.append(el('span', 'sec-meta', `дома ${full} из ${inCat.length}`));
+      }
+      sec.append(head);
+
+      const ul = el('ul', 'items');
+      for (const it of visible) ul.append(buildItem(it));
+      sec.append(ul);
+      els.list.append(sec);
+    }
+
+    let msg = null;
+    if (status === 'loading') msg = ['Загружаю список…', 'Сейчас подтянутся продукты.'];
+    else if (status === 'unavailable') msg = ['Общий список сейчас недоступен', 'Проверьте подключение и обновите страницу.'];
+    else if (!all.length) msg = ['Список пока пуст', canWrite ? 'Нажмите «+» внизу, чтобы добавить первый продукт.' : 'Продукты появятся, когда их добавят.'];
+    else if (!shown && shopView) msg = ['Всё есть дома', 'В магазин можно не идти.'];
+    if (msg) {
+      els.state.replaceChildren(el('strong', null, msg[0]), document.createTextNode(msg[1]));
+      els.state.hidden = false;
+    } else {
+      els.state.hidden = true;
+    }
+
+    if (focusId && focusRole) {
+      const target = rowOf(focusId)?.querySelector(`[data-role="${focusRole}"]`);
+      if (target) target.focus({ preventScroll: true });
+    }
+  }
+
+  function buildItem(it) {
+    const li = el('li', 'item');
+    li.dataset.id = it.id;
+    const inner = el('div', 'item-in');
+    const row = el('div', 'row');
+
+    const tickBtn = el('button', 'tick-btn');
+    tickBtn.type = 'button';
+    tickBtn.dataset.role = 'tick';
+    const tick = el('span', 'tick' + (editing ? ' pen' : ''));
+    tick.innerHTML = editing ? ICON_PEN : ICON_CHECK;
+    tickBtn.append(tick);
+
+    const rowBtn = el('button', 'row-btn');
+    rowBtn.type = 'button';
+    rowBtn.dataset.role = 'row';
+    const main = el('span', 'item-main');
+    main.append(el('span', 'name', it.name || 'без названия'), el('span', 'leader'), el('span', 'qty'));
+    rowBtn.append(main, el('span', 'price'), el('span', 'vh'));
+
+    if (!canWrite && !editing) {
+      tickBtn.setAttribute('aria-disabled', 'true');
+      rowBtn.setAttribute('aria-disabled', 'true');
+    }
+    row.append(tickBtn, rowBtn);
+    inner.append(row);
+
+    const open = openId === it.id && !editing && canWrite;
+    if (open) {
+      const panel = buildPanel(it);
+      rowBtn.setAttribute('aria-controls', panel.id);
+      inner.append(panel);
+    }
+    li.classList.toggle('open', open);
+    li.append(inner);
+    paintItem(li, it);
+    return li;
+  }
+
+  function buildPanel(it) {
+    const panel = el('div', 'panel');
+    panel.id = 'panel-' + it.id;
+
+    const head = el('div', 'panel-head');
+    const have = el('span', 'p-have');
+    have.append(el('span', 'p-label'), document.createTextNode(' '), el('b'), el('span', 'p-of'));
+    head.append(have, el('span', 'p-miss'));
+
+    const stepper = el('div', 'stepper');
+    const dec = el('button', 'step', '−');
+    dec.type = 'button'; dec.dataset.role = 'dec'; dec.setAttribute('aria-label', 'На один меньше');
+    const range = document.createElement('input');
+    range.type = 'range';
+    range.className = 'range';
+    range.id = 'range-' + it.id;
+    range.dataset.role = 'range';
+    range.min = '0';
+    range.step = '1';
+    range.max = String(it.need);
+    range.value = String(haveOf(it));
+    range.setAttribute('aria-label', `Сколько есть: ${it.name}`);
+    const inc = el('button', 'step', '+');
+    inc.type = 'button'; inc.dataset.role = 'inc'; inc.setAttribute('aria-label', 'На один больше');
+    stepper.append(dec, range, inc);
+
+    const quick = el('div', 'quick');
+    const none = el('button', 'qbtn', 'Ничего нет');
+    none.type = 'button'; none.dataset.role = 'none';
+    const all = el('button', 'qbtn', 'Всё есть');
+    all.type = 'button'; all.dataset.role = 'all';
+    quick.append(none, all);
+
+    panel.append(head, stepper, quick);
+    return panel;
+  }
+
+  // Updates the parts of a row that depend on the amount at home, without rebuilding it.
+  function paintItem(li, it) {
+    const shopView = mode === 'shop' && !editing;
+    const have = haveOf(it);
+    const miss = it.need - have;
+    const full = miss <= 0;
+    const name = it.name || 'без названия';
+    li.classList.toggle('is-full', full);
+    li.querySelector('.tick').style.setProperty('--p', String(have / it.need));
+
+    const tickBtn = li.querySelector('[data-role="tick"]');
+    const rowBtn = li.querySelector('[data-role="row"]');
+    if (editing) {
+      tickBtn.setAttribute('aria-label', `Изменить: ${name}`);
+      rowBtn.setAttribute('aria-label', `Изменить: ${name}`);
+    } else {
+      tickBtn.setAttribute('aria-label', shopView ? `${name}: взяли всё` : `${name}: всё есть дома`);
+      tickBtn.setAttribute('aria-pressed', String(full));
+      rowBtn.setAttribute('aria-expanded', String(li.classList.contains('open')));
+    }
+
+    const qty = li.querySelector('.qty');
+    qty.replaceChildren();
+    if (shopView) {
+      if (miss > 0 && showsQty(it)) qty.textContent = amount(miss, it.unit);
+    } else if (have > 0 && !full) {
+      qty.append(el('b', null, fmt.format(have)), document.createTextNode(' из ' + amount(it.need, it.unit)));
+    } else if (showsQty(it)) {
+      qty.textContent = amount(it.need, it.unit);
+    }
+    const price = shopView ? missCost(it) : priceOf(it);
+    li.querySelector('.price').textContent = price ? rub(price) : '';
+    rowBtn.querySelector('.vh').textContent = full
+      ? ', есть дома'
+      : have > 0 ? `, дома ${have} из ${it.need}` : ', нужно купить';
+
+    const panel = li.querySelector('.panel');
+    if (!panel) return;
+    panel.querySelector('.p-label').textContent = shopView ? 'Уже есть:' : 'Дома:';
+    panel.querySelector('.p-have b').textContent = fmt.format(have);
+    panel.querySelector('.p-of').textContent = ' из ' + amount(it.need, it.unit);
+    const pm = panel.querySelector('.p-miss');
+    pm.classList.toggle('done', full);
+    const cost = missCost(it);
+    pm.textContent = full ? 'хватает на неделю' : 'купить ' + amount(miss, it.unit) + (cost ? ` · ≈ ${rub(cost)}` : '');
+    const range = panel.querySelector('.range');
+    range.max = String(it.need);
+    if (+range.value !== have) range.value = String(have);
+    range.style.setProperty('--fill', (have / it.need * 100).toFixed(2) + '%');
+    range.setAttribute('aria-valuetext', `${amount(have, it.unit)} из ${amount(it.need, it.unit)}`);
+    panel.querySelector('[data-role="dec"]').setAttribute('aria-disabled', String(have <= 0));
+    panel.querySelector('[data-role="inc"]').setAttribute('aria-disabled', String(full));
+  }
+
+  function repaint(id) {
+    const li = rowOf(id);
+    const it = items.get(id);
+    if (li && it) paintItem(li, it);
+    renderSummary();
+  }
+
+  // ---------- writes ----------
+  function errText(e) {
+    const code = e && e.code;
+    if (code === 'invalid_argument') return 'Не получилось сохранить. Похоже, у вас доступ только на просмотр.';
+    if (code === 'quota_exceeded') return 'Список переполнен. Удалите лишние продукты и попробуйте снова.';
+    if (code === 'resource_exhausted') return 'Слишком много изменений подряд. Подождите пару секунд.';
+    if (code === 'revoked') return 'Доступ к списку закрыт.';
+    return 'Не получилось сохранить. Проверьте интернет и попробуйте ещё раз.';
+  }
+
+  function lockIfRefused(e) {
+    if (e && (e.code === 'revoked' || (e.code === 'invalid_argument' && writeHint === null))) {
+      canWrite = false;
+      editing = false;
+      openId = null;
+    }
+  }
+
+  async function withRetry(fn) {
+    try { return await fn(); }
+    catch (e) {
+      if (e && e.code === 'unavailable') {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 700));
+        return fn();
+      }
+      throw e;
+    }
+  }
+
+  function queue(id, fn) {
+    const run = (chains.get(id) || Promise.resolve()).then(() => withRetry(fn));
+    chains.set(id, run.catch(() => {}));
+    return run;
+  }
+
+  function setLocal(id, value) {
+    const it = items.get(id);
+    if (!it) return;
+    local.set(id, clamp(Math.round(value), 0, it.need));
+    dirty.add(id);
+    settled.delete(id);
+  }
+
+  function commit(id) {
+    clearTimeout(writeTimers.get(id));
+    writeTimers.delete(id);
+    if (!dirty.has(id)) return Promise.resolve();
+    dirty.delete(id);
+    const it = items.get(id);
+    if (!it || !db) { local.delete(id); return Promise.resolve(); }
+    const value = local.get(id);
+    const body = { have: value };
+    if (it.legacy) { body.need = it.need; body.unit = it.unit; }
+    return queue(id, () => db.doc('items/' + id).update(body))
+      .then(() => {
+        if (local.get(id) === value && !dirty.has(id)) {
+          if (items.get(id)?.have === value) local.delete(id);
+          else settled.add(id);   // the next snapshot carries it
+        }
+        render();
+      })
+      .catch(e => {
+        if (!dirty.has(id)) local.delete(id);
+        lockIfRefused(e);
+        render();
+        showToast(errText(e));
+      });
+  }
+
+  // In the store view a row that becomes complete lingers, then leaves, with an undo.
+  function afterChange(id, before) {
+    const it = items.get(id);
+    if (!it || mode !== 'shop' || editing) return;
+    if (haveOf(it) >= it.need && before < it.need) {
+      lastBefore.set(id, before);
+      linger(id);
+      showToast(`«${it.name}» — в корзине`, () => {
+        unlinger(id);
+        setLocal(id, before);
+        commit(id);
+        render();
+      });
+    }
+  }
+
+  function toggleFull(id) {
+    const it = items.get(id);
+    if (!it || !canWrite) return;
+    const before = haveOf(it);
+    let next = before >= it.need ? 0 : it.need;
+    if (lingering.has(id)) {
+      next = lastBefore.get(id) ?? 0;
+      unlinger(id);
+      hideToast();
+    }
+    setLocal(id, next);
+    commit(id);
+    afterChange(id, before);
+    render();
+  }
+
+  function setQuick(id, toFull) {
+    const it = items.get(id);
+    if (!it) return;
+    const before = haveOf(it);
+    const next = toFull ? it.need : 0;
+    if (next === before) return;
+    if (!toFull) unlinger(id);
+    setLocal(id, next);
+    commit(id);
+    afterChange(id, before);
+    render();
+  }
+
+  function step(id, delta) {
+    const it = items.get(id);
+    if (!it) return;
+    const cur = haveOf(it);
+    const next = clamp(cur + delta, 0, it.need);
+    if (next === cur) return;
+    if (!gestureStart.has(id)) gestureStart.set(id, cur);
+    setLocal(id, next);
+    repaint(id);
+    clearTimeout(writeTimers.get(id));
+    writeTimers.set(id, setTimeout(() => endGesture(id), 700));
+  }
+
+  function endGesture(id) {
+    const before = gestureStart.get(id);
+    gestureStart.delete(id);
+    commit(id);
+    if (before !== undefined) afterChange(id, before);
+    render();
+  }
+
+  function linger(id) {
+    unlinger(id);
+    const t = setTimeout(() => {
+      const row = rowOf(id);
+      const finish = () => {
+        lingering.delete(id);
+        if (openId === id) openId = null;
+        render();
+      };
+      if (row && !reduceMotion) { row.classList.add('collapse'); lingering.set(id, setTimeout(finish, 280)); }
+      else finish();
+    }, 1100);
+    lingering.set(id, t);
+  }
+  function unlinger(id) {
+    if (lingering.has(id)) { clearTimeout(lingering.get(id)); lingering.delete(id); }
+  }
+  function clearLingering() {
+    for (const t of lingering.values()) clearTimeout(t);
+    lingering.clear();
+  }
+
+  // ---------- toast ----------
+  let toastTimer = null;
+  let toastUndo = null;
+  function showToast(text, undo) {
+    clearTimeout(toastTimer);
+    els.toastText.textContent = text;
+    toastUndo = undo || null;
+    els.toastAction.hidden = !undo;
+    els.toast.hidden = false;
+    toastTimer = setTimeout(hideToast, undo ? 4500 : 3500);
+  }
+  function hideToast() {
+    clearTimeout(toastTimer);
+    els.toast.hidden = true;
+    toastUndo = null;
+  }
+  els.toastAction.addEventListener('click', () => { const fn = toastUndo; hideToast(); if (fn) fn(); });
+
+  // ---------- mode / edit ----------
+  function setMode(m) {
+    if (mode === m) return;
+    mode = m;
+    openId = null;
+    clearLingering();
+    try { localStorage.setItem('mode', m); } catch (e) {}
+    render();
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+  els.modeAll.addEventListener('click', () => setMode('all'));
+  els.modeShop.addEventListener('click', () => setMode('shop'));
+  els.editBtn.addEventListener('click', () => {
+    editing = !editing;
+    openId = null;
+    clearLingering();
+    hideReset();
+    render();
+  });
+
+  // ---------- list interactions ----------
+  els.list.addEventListener('click', e => {
+    const b = e.target.closest('button[data-role]');
+    if (!b) return;
+    const id = b.closest('[data-id]').dataset.id;
+    const role = b.dataset.role;
+    if (editing) {
+      if (role === 'tick' || role === 'row') openSheet(id, b);
+      return;
+    }
+    if (!canWrite || b.getAttribute('aria-disabled') === 'true') return;
+    if (role === 'tick') toggleFull(id);
+    else if (role === 'row') {
+      openId = openId === id ? null : id;
+      render();
+      if (openId) {
+        requestAnimationFrame(() => {
+          const panel = document.getElementById('panel-' + id);
+          if (panel) panel.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+        });
+      }
+    }
+    else if (role === 'dec' || role === 'inc') step(id, role === 'inc' ? 1 : -1);
+    else if (role === 'none' || role === 'all') setQuick(id, role === 'all');
+  });
+
+  els.list.addEventListener('pointerdown', e => {
+    const r = e.target.closest('[data-role="range"]');
+    if (!r) return;
+    holdList = true;
+    dragId = r.closest('[data-id]').dataset.id;
+  });
+  function releaseDrag() {
+    if (!holdList) return;
+    const id = dragId;
+    holdList = false;
+    dragId = null;
+    if (id) endGesture(id);
+    else if (listStale) render();
+  }
+  document.addEventListener('pointerup', releaseDrag);
+  document.addEventListener('pointercancel', releaseDrag);
+
+  els.list.addEventListener('input', e => {
+    const r = e.target.closest('[data-role="range"]');
+    if (!r) return;
+    const id = r.closest('[data-id]').dataset.id;
+    const it = items.get(id);
+    if (!it || !canWrite) return;
+    if (!gestureStart.has(id)) gestureStart.set(id, haveOf(it));
+    setLocal(id, +r.value);
+    repaint(id);
+    clearTimeout(writeTimers.get(id));
+    writeTimers.set(id, setTimeout(() => commit(id), 600));
+  });
+  els.list.addEventListener('change', e => {
+    const r = e.target.closest('[data-role="range"]');
+    if (!r) return;
+    endGesture(r.closest('[data-id]').dataset.id);
+  });
+
+  // ---------- reset ----------
+  function hideReset() { els.resetConfirm.hidden = true; els.resetBtn.hidden = false; }
+  els.resetBtn.addEventListener('click', () => { els.resetBtn.hidden = true; els.resetConfirm.hidden = false; els.resetYes.focus(); });
+  els.resetNo.addEventListener('click', () => { hideReset(); els.resetBtn.focus(); });
+  els.resetYes.addEventListener('click', async () => {
+    hideReset();
+    openId = null;
+    const ids = [...items.values()].filter(it => haveOf(it) > 0).map(it => it.id);
+    for (const id of ids) setLocal(id, 0);
+    render();
+    for (const id of ids) await commit(id);
+    showToast('Готово: всё снова в списке покупок.');
+  });
+
+  // ---------- sheet (add / edit) ----------
+  let sheetId = null;
+  let sheetOpener = null;
+  let delArmed = false;
+
+  for (const c of CATS) {
+    const lab = el('label', 'chip');
+    const inp = document.createElement('input');
+    inp.type = 'radio'; inp.name = 'cat'; inp.value = c.key; inp.id = 'cat-' + c.key;
+    lab.append(inp, el('span', null, c.label));
+    els.fCats.append(lab);
+  }
+
+  function openSheet(id, opener) {
+    sheetId = id || null;
+    sheetOpener = opener || document.activeElement;
+    const it = id ? items.get(id) : null;
+    els.sheetTitle.textContent = it ? 'Изменить продукт' : 'Новый продукт';
+    els.fName.value = it ? (it.name || '') : '';
+    els.fNeed.value = it ? String(it.need) : '';
+    els.fUnit.value = it ? it.unit : '';
+    els.fPrice.value = it && priceOf(it) ? String(priceOf(it)) : '';
+    const cat = it ? catOf(it) : (mode === 'shop' ? 'extra' : 'basic');
+    els.form.querySelector(`input[name="cat"][value="${cat}"]`).checked = true;
+    els.delBtn.hidden = !it;
+    disarmDelete();
+    els.formErr.hidden = true;
+    els.saveBtn.disabled = false;
+    els.sheet.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => els.fName.focus(), 30);
+  }
+  function closeSheet() {
+    els.sheet.hidden = true;
+    document.body.style.overflow = '';
+    sheetId = null;
+    if (sheetOpener && document.contains(sheetOpener)) sheetOpener.focus({ preventScroll: true });
+  }
+  function disarmDelete() { delArmed = false; els.delBtn.classList.remove('armed'); els.delBtn.textContent = 'Удалить'; }
+  function formError(text) { els.formErr.textContent = text; els.formErr.hidden = false; }
+
+  els.sheet.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !els.sheet.hidden) closeSheet(); });
+
+  els.form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = els.fName.value.trim().replace(/\s+/g, ' ');
+    if (!name) { formError('Напишите, что купить.'); els.fName.focus(); return; }
+    const rawNeed = els.fNeed.value.trim();
+    const need = rawNeed === '' ? 1 : Math.round(Number(rawNeed));
+    if (!Number.isFinite(need) || need < 1 || need > MAX_NEED) {
+      formError(`Сколько нужно: целое число от 1 до ${MAX_NEED}.`); els.fNeed.focus(); return;
+    }
+    const unit = els.fUnit.value.trim().replace(/\s+/g, ' ');
+    const rawPrice = els.fPrice.value.trim();
+    const price = rawPrice === '' ? 0 : Math.round(Number(rawPrice));
+    if (!Number.isFinite(price) || price < 0) { formError('Цена должна быть числом, например 250.'); els.fPrice.focus(); return; }
+    const cat = (els.form.querySelector('input[name="cat"]:checked') || {}).value || 'extra';
+    const body = { name, need, unit, price, cat };
+
+    els.saveBtn.disabled = true;
+    const editingId = sheetId;
+    try {
+      if (editingId) {
+        const it = items.get(editingId);
+        if (it && haveOf(it) > need) { body.have = need; local.delete(editingId); dirty.delete(editingId); }
+        await queue(editingId, () => db.doc('items/' + editingId).update(body));
+        closeSheet();
+        showToast('Сохранено');
+      } else {
+        await withRetry(() => db.collection('items').add({ ...body, have: 0, order: Date.now() }));
+        closeSheet();
+        showToast(`«${name}» — в списке`);
+      }
+    } catch (err) {
+      els.saveBtn.disabled = false;
+      formError(errText(err));
+    }
+  });
+
+  els.delBtn.addEventListener('click', async () => {
+    if (!sheetId) return;
+    if (!delArmed) {
+      delArmed = true;
+      els.delBtn.classList.add('armed');
+      els.delBtn.textContent = 'Точно удалить?';
+      return;
+    }
+    const id = sheetId;
+    const name = items.get(id)?.name || 'Продукт';
+    try {
+      await queue(id, () => db.doc('items/' + id).delete());
+      closeSheet();
+      showToast(`«${name}» удалён`);
+    } catch (err) {
+      disarmDelete();
+      formError(errText(err));
+    }
+  });
+
+  els.addBtn.addEventListener('click', () => openSheet(null, els.addBtn));
+
+  // ---------- data ----------
+  render();
+
+  let resubscribes = 0;
+  function subscribe() {
+    db.collection('items').onSnapshot(snap => {
+      const next = new Map();
+      for (const d of snap.docs) {
+        if (!d.exists) continue;
+        next.set(d.id, parseItem(d.id, d.data() || {}));
+      }
+      items = next;
+      for (const id of [...local.keys()]) if (!items.has(id)) { local.delete(id); dirty.delete(id); }
+      for (const id of settled) if (!dirty.has(id)) local.delete(id);
+      settled.clear();
+      for (const id of [...lingering.keys()]) if (!items.has(id)) unlinger(id);
+      if (openId && !items.has(openId)) openId = null;
+      status = 'ready';
+      render();
+    }, err => {
+      if (err && err.code === 'unavailable' && resubscribes < 3) {
+        resubscribes++;
+        setTimeout(subscribe, 1500 * resubscribes);
+        return;
+      }
+      canWrite = false;
+      editing = false;
+      openId = null;
+      if (items.size) showToast('Список перестал обновляться. Обновите страницу.');
+      else status = 'unavailable';
+      render();
+    });
+  }
+
+  (async () => {
+    async function request(method = 'GET', body) {
+      const response = await fetch('/pokupki/api', {
+        method, cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      if (!response.ok) throw new Error('Не удалось сохранить список. Попробуйте ещё раз.');
+      return response.json();
+    }
+    let receive = null, fail = null, previous = '';
+    async function refresh() {
+      const data = await request();
+      const encoded = JSON.stringify(data);
+      if (receive && encoded !== previous) {
+        previous = encoded;
+        receive({ docs: data.map(item => ({ id: item.id, exists: true, data: () => item })) });
+      }
+    }
+    async function mutate(body) { await request('POST', body); await refresh(); }
+    db = {
+      collection: () => ({
+        add: data => mutate({ action: 'add', data }),
+        onSnapshot: (next, error) => {
+          receive = next; fail = error;
+          refresh().catch(fail);
+        }
+      }),
+      doc: path => ({
+        update: data => mutate({ action: 'update', id: path.split('/')[1], data }),
+        delete: () => mutate({ action: 'delete', id: path.split('/')[1] })
+      })
+    };
+    setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 2000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh().catch(() => {}); });
+    writeHint = true;
+    canWrite = true;
+    subscribe();
+  })();
+})();
+</script>
+
+</body>
+</html>
