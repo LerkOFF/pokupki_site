@@ -5,3 +5,5 @@
 *.sqlite-shm
 *.htpasswd
 .env
+.data/
+.claude/

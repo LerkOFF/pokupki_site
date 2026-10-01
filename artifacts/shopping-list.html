@@ -124,7 +124,8 @@ h1 .hand {
 .pill svg { width: 15px; height: 15px; }
 .pill[aria-pressed="true"] { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
 .pill:focus-visible, .icon-btn:focus-visible, .seg button:focus-visible, .fab:focus-visible, .btn:focus-visible,
-.linkbtn:focus-visible, .toast button:focus-visible, .step:focus-visible, .qbtn:focus-visible {
+.linkbtn:focus-visible, .toast button:focus-visible, .step:focus-visible, .qbtn:focus-visible,
+.thumb:focus-visible, .pact:focus-visible, .g-nav:focus-visible, .g-strip button:focus-visible {
   outline: 2px solid var(--basil); outline-offset: 2px;
 }
 
@@ -442,6 +443,99 @@ h1 .hand {
 .btn.small { min-height: 36px; padding: 6px 12px; border-radius: 10px; font-size: .875rem; }
 .form-err { margin: 0; color: var(--danger); font-size: .875rem; }
 
+/* ---------- photos ---------- */
+.row.has-photo { grid-template-columns: 56px 54px minmax(0, 1fr); }
+.thumb {
+  position: relative; align-self: center; justify-self: start;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  background: var(--surface-2); cursor: pointer;
+}
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.thumb-n {
+  position: absolute; right: 2px; bottom: 2px; padding: 0 5px; border-radius: 99px;
+  background: var(--toast-bg); color: var(--toast-fg);
+  font-size: .6875rem; font-weight: 700; line-height: 1.5;
+}
+.photos { display: flex; flex-direction: column; gap: 8px; }
+.photos-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: .8125rem; font-weight: 500; color: var(--ink-2); }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.photo-grid:empty { display: none; }
+.pcell { position: relative; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+.pcell img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pmain {
+  position: absolute; left: 4px; top: 4px; padding: 1px 7px; border-radius: 99px;
+  background: var(--basil); color: var(--on-basil); font-size: .6875rem; font-weight: 700;
+}
+.pact {
+  position: absolute; bottom: 4px; display: grid; place-items: center;
+  min-width: 36px; height: 36px; padding: 0 8px;
+  border: 0; border-radius: 10px;
+  background: rgba(18, 24, 20, .75); color: #fff;
+  font-size: .8125rem; font-weight: 700; cursor: pointer;
+}
+.pact.star { left: 4px; }
+.pact.del { right: 4px; }
+.pact.del.armed { background: var(--danger); }
+.photo-add { align-self: flex-start; position: relative; display: inline-flex; align-items: center; }
+.photo-add:focus-within { outline: 2px solid var(--basil); outline-offset: 2px; }
+.photo-add[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+
+.gallery {
+  position: fixed; inset: 0; z-index: 40;
+  display: flex; flex-direction: column;
+  background: #080C0A; color: #F2F4EE;
+}
+.g-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+}
+.g-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.g-count { margin-left: auto; color: #B8C4BB; font-size: .875rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.g-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; touch-action: pan-y; }
+.g-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.g-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 48px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .16); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer;
+}
+.g-nav.prev { left: 10px; }
+.g-nav.next { right: 10px; }
+.g-strip {
+  display: flex; justify-content: center; gap: 8px; overflow-x: auto;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.g-strip button {
+  flex: 0 0 auto; width: 56px; height: 56px; padding: 0;
+  border: 2px solid transparent; border-radius: 10px; overflow: hidden;
+  background: #222; opacity: .65; cursor: pointer;
+}
+.g-strip button[aria-current="true"] { border-color: var(--yolk); opacity: 1; }
+.g-strip img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- archive ---------- */
+.arch-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.arch-item {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  padding: 8px; border: 1px solid var(--line); border-radius: 14px;
+}
+.a-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--surface-2); }
+.a-name { font-weight: 500; overflow-wrap: anywhere; }
+.a-meta { font-size: .8125rem; color: var(--ink-2); }
+.a-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+
+/* ---------- foot links, login ---------- */
+.foot-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.foot-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+.login { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: var(--bg); }
+.login-card {
+  width: 100%; max-width: 22rem;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 22px 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow);
+}
+.login-card h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; }
+
 @keyframes rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -480,11 +574,17 @@ h1 .hand {
   <p class="state" id="state"><strong>Загружаю список…</strong>Сейчас подтянутся продукты.</p>
 
   <div class="foot" id="foot" hidden>
+    <div class="foot-box" id="resetBox">
     <button type="button" class="linkbtn" id="resetBtn">Новая неделя: обнулить всё, что дома</button>
     <div class="confirm" id="resetConfirm" hidden>
       <span>Все продукты снова станут «купить». Точно?</span>
       <button type="button" class="btn small primary" id="resetYes">Да, обнулить</button>
       <button type="button" class="btn small" id="resetNo">Отмена</button>
+    </div>
+    </div>
+    <div class="foot-links">
+      <button type="button" class="linkbtn" id="archiveBtn" hidden>Архив</button>
+      <button type="button" class="linkbtn" id="logoutBtn">Выйти</button>
     </div>
   </div>
 </div>
@@ -520,11 +620,11 @@ h1 .hand {
       <label class="field">Ед.
         <input id="fUnit" name="unit" autocomplete="off" maxlength="8" list="units" placeholder="шт.">
       </label>
-      <label class="field">Цена, ₽
-        <input id="fPrice" name="price" type="number" inputmode="numeric" min="0" max="999999" step="1" placeholder="0">
+      <label class="field">Цена за 1, ₽
+        <input id="fPrice" name="price" inputmode="decimal" autocomplete="off" maxlength="9" placeholder="0">
       </label>
     </div>
-    <p class="field-note">Сколько нужно на неделю и сколько это стоит целиком.</p>
+    <p class="field-note" id="priceNote"></p>
     <datalist id="units">
       <option value="шт."></option>
       <option value="уп."></option>
@@ -535,13 +635,62 @@ h1 .hand {
     <fieldset class="chips" id="fCats">
       <legend>Раздел</legend>
     </fieldset>
+    <div class="photos" id="photosBox" hidden>
+      <div class="photos-head"><span>Фото</span><span id="photosNote"></span></div>
+      <div class="photo-grid" id="photoGrid"></div>
+      <label class="btn small photo-add" id="photoAdd">Добавить фото<input class="vh" id="photoInput" type="file" accept="image/*" multiple></label>
+    </div>
+    <p class="field-note" id="photosNew" hidden>Фото добавляются у сохранённого продукта: «Изменить» → нажмите на продукт.</p>
     <p class="form-err" id="formErr" hidden></p>
     <div class="sheet-actions">
-      <button type="button" class="btn danger" id="delBtn" hidden>Удалить</button>
+      <button type="button" class="btn danger" id="delBtn" hidden>В архив</button>
       <span class="grow"></span>
       <button type="button" class="btn" data-close>Отмена</button>
       <button type="submit" class="btn primary" id="saveBtn">Сохранить</button>
     </div>
+  </form>
+</div>
+
+<div class="sheet-wrap" id="archiveSheet" hidden>
+  <div class="scrim" data-close-archive></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="archTitle">
+    <h2 id="archTitle">Архив</h2>
+    <p class="field-note">Убранные продукты. Верните — и они снова в списке, вместе с фото.</p>
+    <p class="state" id="archEmpty" hidden><strong>В архиве пусто</strong>Сюда попадают продукты, которые вы убрали.</p>
+    <ul class="arch-list" id="archList"></ul>
+    <div class="sheet-actions">
+      <span class="grow"></span>
+      <button type="button" class="btn" id="archClose" data-close-archive>Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<div class="gallery" id="gallery" role="dialog" aria-modal="true" aria-label="Фотографии продукта" hidden>
+  <div class="g-top">
+    <span class="g-title" id="gTitle"></span>
+    <span class="g-count" id="gCount"></span>
+    <button type="button" class="icon-btn" id="gClose" aria-label="Закрыть">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+    </button>
+  </div>
+  <div class="g-stage" id="gStage">
+    <img id="gImg" alt="">
+    <button type="button" class="g-nav prev" id="gPrev" aria-label="Предыдущее фото">&#8249;</button>
+    <button type="button" class="g-nav next" id="gNext" aria-label="Следующее фото">&#8250;</button>
+  </div>
+  <div class="g-strip" id="gStrip"></div>
+</div>
+
+<div class="login" id="login" hidden>
+  <form class="login-card" id="loginForm">
+    <h2>Продукты на неделю</h2>
+    <p class="field-note">Введите пароль, чтобы открыть список. Вход запомнится на месяц.</p>
+    <input class="vh" name="username" autocomplete="username" value="pokupki" tabindex="-1" aria-hidden="true" readonly>
+    <label class="field">Пароль
+      <input id="lPass" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <p class="form-err" id="loginErr" hidden></p>
+    <button type="submit" class="btn primary" id="loginBtn">Войти</button>
   </form>
 </div>
 
@@ -557,6 +706,7 @@ h1 .hand {
   ];
   const CAT_KEYS = new Set(CATS.map(c => c.key));
   const MAX_NEED = 999;
+  const MAX_PHOTOS = 12;
   const ICON_CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-6.5"/></svg>';
   const ICON_PEN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
   const ICON_MOON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"/></svg>';
@@ -575,14 +725,26 @@ h1 .hand {
     fName: $('fName'), fNeed: $('fNeed'), fUnit: $('fUnit'), fPrice: $('fPrice'), fCats: $('fCats'),
     formErr: $('formErr'), delBtn: $('delBtn'), saveBtn: $('saveBtn'),
     resetBtn: $('resetBtn'), resetConfirm: $('resetConfirm'), resetYes: $('resetYes'), resetNo: $('resetNo'),
+    resetBox: $('resetBox'), archiveBtn: $('archiveBtn'), logoutBtn: $('logoutBtn'), priceNote: $('priceNote'),
+    photosBox: $('photosBox'), photosNew: $('photosNew'), photoGrid: $('photoGrid'), photoAdd: $('photoAdd'),
+    photoInput: $('photoInput'), photosNote: $('photosNote'),
+    gallery: $('gallery'), gTitle: $('gTitle'), gCount: $('gCount'), gImg: $('gImg'), gPrev: $('gPrev'), gNext: $('gNext'),
+    gStrip: $('gStrip'), gStage: $('gStage'), gClose: $('gClose'),
+    archiveSheet: $('archiveSheet'), archList: $('archList'), archEmpty: $('archEmpty'), archClose: $('archClose'),
+    login: $('login'), loginForm: $('loginForm'), lPass: $('lPass'), loginErr: $('loginErr'), loginBtn: $('loginBtn'),
   };
 
   // ---------- state ----------
   let db = null;
-  let status = 'loading';        // loading | ready | unavailable
+  let status = 'loading';        // loading | ready | unavailable | auth (login needed)
   let canWrite = false;
   let writeHint = null;          // what the platform said about writing: true | false | null
-  let items = new Map();         // id -> { id, name, need, unit, have, price, cat, order, legacy }
+  let items = new Map();         // id -> { id, name, need, unit, have, price, cat, order, legacy, photos }
+  let archive = new Map();       // archived products, same shape
+  let galleryId = null, galleryIdx = 0, galleryOpener = null;
+  let photoBusy = false;
+  let armedPhoto = null;         // photo whose delete button was tapped once
+  let armedArchive = null;       // archived product whose "delete forever" was tapped once
   let mode = 'all';              // all | shop
   let editing = false;
   let openId = null;             // row whose slider is open
@@ -602,7 +764,11 @@ h1 .hand {
 
   // ---------- helpers ----------
   const fmt = new Intl.NumberFormat('ru-RU');
-  const rub = n => fmt.format(n) + ' ₽';
+  const fmtKop = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Money is counted in kopecks (integers) so totals never drift; whole rubles are shown without ",00".
+  const rub = k => (k % 100 === 0 ? fmt.format(k / 100) : fmtKop.format(k / 100)) + ' ₽';
+  const toKop = rubles => Math.round(rubles * 100);
+  const PRICE_RE = /^\d{1,6}(?:[.,]\d{1,2})?$/;
   const plural = (n, one, few, many) => {
     const a = n % 10, b = n % 100;
     if (a === 1 && b !== 11) return one;
@@ -610,11 +776,13 @@ h1 .hand {
     return many;
   };
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-  const priceOf = it => (Number.isFinite(+it.price) ? Math.max(0, +it.price) : 0);
+  const priceOf = it => (Number.isFinite(+it.price) ? Math.round(Math.max(0, +it.price) * 100) / 100 : 0);
   const catOf = it => (CAT_KEYS.has(it.cat) ? it.cat : 'extra');
   const haveOf = it => clamp(local.has(it.id) ? local.get(it.id) : it.have, 0, it.need);
   const missOf = it => it.need - haveOf(it);
-  const missCost = it => Math.round(priceOf(it) * missOf(it) / it.need);
+  // The price is for one unit (шт., кг, л); money below is in kopecks.
+  const missCost = it => toKop(priceOf(it)) * missOf(it);
+  const totalCost = it => toKop(priceOf(it)) * it.need;
   const amount = (n, unit) => (unit ? `${fmt.format(n)} ${unit}` : fmt.format(n));
   const showsQty = it => !!it.unit || it.need > 1;
   const byOrder = (a, b) => (+a.order || 0) - (+b.order || 0) || String(a.name).localeCompare(String(b.name), 'ru');
@@ -650,6 +818,9 @@ h1 .hand {
       cat: data.cat,
       order: data.order,
       legacy,
+      photos: Array.isArray(data.photos) ? data.photos.filter(x => typeof x === 'string' && /^[a-f0-9]{32}$/.test(x)) : [],
+      archived: data.archived === true,
+      archivedAt: Number(data.archivedAt) || 0,
     };
   }
 
@@ -680,6 +851,7 @@ h1 .hand {
   function render() {
     renderSummary();
     renderChrome();
+    renderOverlays();
     if (holdList) { listStale = true; return; }
     listStale = false;
     renderList();
@@ -696,7 +868,7 @@ h1 .hand {
     const ready = status === 'ready';
 
     els.needCount.textContent = ready ? String(toBuy.length) : '—';
-    if (!ready) els.needLabel.textContent = status === 'loading' ? 'загружаю список' : 'список недоступен';
+    if (!ready) els.needLabel.textContent = status === 'loading' ? 'загружаю список' : status === 'auth' ? 'нужен вход' : 'список недоступен';
     else if (!total) els.needLabel.textContent = 'список пуст';
     else if (!toBuy.length) els.needLabel.textContent = 'всё есть дома';
     else els.needLabel.textContent = plural(toBuy.length, 'продукт', 'продукта', 'продуктов') + ' купить';
@@ -719,11 +891,14 @@ h1 .hand {
     els.editBtn.setAttribute('aria-pressed', String(editing));
     els.editLabel.textContent = editing ? 'Готово' : 'Изменить';
     const anyHome = [...items.values()].some(it => haveOf(it) > 0);
-    els.foot.hidden = !(ready && canWrite && anyHome && mode === 'all' && !editing);
+    els.foot.hidden = !ready;
+    els.resetBox.hidden = !(canWrite && anyHome && mode === 'all' && !editing);
+    els.archiveBtn.hidden = !(canWrite && archive.size);
+    els.archiveBtn.textContent = `Архив (${archive.size})`;
     els.modeHint.classList.toggle('edit', editing);
     els.modeHint.hidden = !ready || !total;
     els.modeHint.textContent = editing
-      ? 'Нажмите на продукт, чтобы поменять или удалить его.'
+      ? 'Нажмите на продукт, чтобы поменять его, добавить фото или убрать в архив.'
       : !canWrite
         ? 'У вас доступ только на просмотр.'
         : mode === 'shop'
@@ -767,7 +942,8 @@ h1 .hand {
     }
 
     let msg = null;
-    if (status === 'loading') msg = ['Загружаю список…', 'Сейчас подтянутся продукты.'];
+    if (status === 'auth') msg = null;
+    else if (status === 'loading') msg = ['Загружаю список…', 'Сейчас подтянутся продукты.'];
     else if (status === 'unavailable') msg = ['Общий список сейчас недоступен', 'Проверьте подключение и обновите страницу.'];
     else if (!all.length) msg = ['Список пока пуст', canWrite ? 'Нажмите «+» внизу, чтобы добавить первый продукт.' : 'Продукты появятся, когда их добавят.'];
     else if (!shown && shopView) msg = ['Всё есть дома', 'В магазин можно не идти.'];
@@ -808,7 +984,23 @@ h1 .hand {
       tickBtn.setAttribute('aria-disabled', 'true');
       rowBtn.setAttribute('aria-disabled', 'true');
     }
-    row.append(tickBtn, rowBtn);
+    row.append(tickBtn);
+    if (it.photos.length) {
+      row.classList.add('has-photo');
+      const th = el('button', 'thumb');
+      th.type = 'button';
+      th.dataset.role = 'thumb';
+      th.setAttribute('aria-label', `Фото: ${it.name || 'продукт'}` + (it.photos.length > 1 ? `, всего ${it.photos.length}` : ''));
+      const img = document.createElement('img');
+      img.src = photoUrl(it.photos[0], true);
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      th.append(img);
+      if (it.photos.length > 1) th.append(el('span', 'thumb-n', '+' + (it.photos.length - 1)));
+      row.append(th);
+    }
+    row.append(rowBtn);
     inner.append(row);
 
     const open = openId === it.id && !editing && canWrite;
@@ -890,7 +1082,7 @@ h1 .hand {
     } else if (showsQty(it)) {
       qty.textContent = amount(it.need, it.unit);
     }
-    const price = shopView ? missCost(it) : priceOf(it);
+    const price = shopView ? missCost(it) : totalCost(it);
     li.querySelector('.price').textContent = price ? rub(price) : '';
     rowBtn.querySelector('.vh').textContent = full
       ? ', есть дома'
@@ -924,6 +1116,7 @@ h1 .hand {
   // ---------- writes ----------
   function errText(e) {
     const code = e && e.code;
+    if (code === 'auth') return 'Вход закончился. Войдите снова.';
     if (code === 'invalid_argument') return 'Не получилось сохранить. Похоже, у вас доступ только на просмотр.';
     if (code === 'quota_exceeded') return 'Список переполнен. Удалите лишние продукты и попробуйте снова.';
     if (code === 'resource_exhausted') return 'Слишком много изменений подряд. Подождите пару секунд.';
@@ -1122,6 +1315,7 @@ h1 .hand {
     if (!b) return;
     const id = b.closest('[data-id]').dataset.id;
     const role = b.dataset.role;
+    if (role === 'thumb') { openGallery(id, b); return; }
     if (editing) {
       if (role === 'tick' || role === 'row') openSheet(id, b);
       return;
@@ -1194,7 +1388,6 @@ h1 .hand {
   // ---------- sheet (add / edit) ----------
   let sheetId = null;
   let sheetOpener = null;
-  let delArmed = false;
 
   for (const c of CATS) {
     const lab = el('label', 'chip');
@@ -1212,28 +1405,42 @@ h1 .hand {
     els.fName.value = it ? (it.name || '') : '';
     els.fNeed.value = it ? String(it.need) : '';
     els.fUnit.value = it ? it.unit : '';
-    els.fPrice.value = it && priceOf(it) ? String(priceOf(it)) : '';
+    els.fPrice.value = it && priceOf(it) ? (Number.isInteger(priceOf(it)) ? String(priceOf(it)) : priceOf(it).toFixed(2).replace('.', ',')) : '';
     const cat = it ? catOf(it) : (mode === 'shop' ? 'extra' : 'basic');
     els.form.querySelector(`input[name="cat"][value="${cat}"]`).checked = true;
     els.delBtn.hidden = !it;
-    disarmDelete();
+    els.photosBox.hidden = !it;
+    els.photosNew.hidden = !!it;
+    armedPhoto = null;
+    updatePriceNote();
     els.formErr.hidden = true;
     els.saveBtn.disabled = false;
     els.sheet.hidden = false;
-    document.body.style.overflow = 'hidden';
+    syncScrollLock();
+    renderPhotoGrid();
     setTimeout(() => els.fName.focus(), 30);
   }
   function closeSheet() {
     els.sheet.hidden = true;
-    document.body.style.overflow = '';
     sheetId = null;
+    armedPhoto = null;
+    syncScrollLock();
     if (sheetOpener && document.contains(sheetOpener)) sheetOpener.focus({ preventScroll: true });
   }
-  function disarmDelete() { delArmed = false; els.delBtn.classList.remove('armed'); els.delBtn.textContent = 'Удалить'; }
   function formError(text) { els.formErr.textContent = text; els.formErr.hidden = false; }
 
   els.sheet.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeSheet(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !els.sheet.hidden) closeSheet(); });
+  document.addEventListener('keydown', e => {
+    if (!els.gallery.hidden) {
+      if (e.key === 'Escape') closeGallery();
+      else if (e.key === 'ArrowLeft') galleryStep(-1);
+      else if (e.key === 'ArrowRight') galleryStep(1);
+      return;
+    }
+    if (e.key !== 'Escape') return;
+    if (!els.archiveSheet.hidden) closeArchive();
+    else if (!els.sheet.hidden) closeSheet();
+  });
 
   els.form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -1246,8 +1453,8 @@ h1 .hand {
     }
     const unit = els.fUnit.value.trim().replace(/\s+/g, ' ');
     const rawPrice = els.fPrice.value.trim();
-    const price = rawPrice === '' ? 0 : Math.round(Number(rawPrice));
-    if (!Number.isFinite(price) || price < 0) { formError('Цена должна быть числом, например 250.'); els.fPrice.focus(); return; }
+    if (rawPrice !== '' && !PRICE_RE.test(rawPrice)) { formError('Цена — число с копейками не больше чем до двух знаков, например 250 или 89,90.'); els.fPrice.focus(); return; }
+    const price = rawPrice === '' ? 0 : Math.round(Number(rawPrice.replace(',', '.')) * 100) / 100;
     const cat = (els.form.querySelector('input[name="cat"]:checked') || {}).value || 'extra';
     const body = { name, need, unit, price, cat };
 
@@ -1273,25 +1480,375 @@ h1 .hand {
 
   els.delBtn.addEventListener('click', async () => {
     if (!sheetId) return;
-    if (!delArmed) {
-      delArmed = true;
-      els.delBtn.classList.add('armed');
-      els.delBtn.textContent = 'Точно удалить?';
-      return;
-    }
-    const id = sheetId;
-    const name = items.get(id)?.name || 'Продукт';
-    try {
-      await queue(id, () => db.doc('items/' + id).delete());
-      closeSheet();
-      showToast(`«${name}» удалён`);
-    } catch (err) {
-      disarmDelete();
-      formError(errText(err));
-    }
+    try { await archiveItem(sheetId); }
+    catch (err) { formError(errText(err)); }
   });
 
   els.addBtn.addEventListener('click', () => openSheet(null, els.addBtn));
+
+  // ---------- price note (price is for one unit) ----------
+  function updatePriceNote() {
+    const unit = els.fUnit.value.trim().replace(/\s+/g, ' ');
+    const raw = els.fPrice.value.trim();
+    const need = Math.round(Number(els.fNeed.value.trim() || 1));
+    let text = `Цена за 1 ${unit || 'шт.'}: всего = цена × сколько нужно.`;
+    if (PRICE_RE.test(raw) && Number.isFinite(need) && need >= 1 && need <= MAX_NEED) {
+      const k = toKop(Number(raw.replace(',', '.')));
+      if (k) text = `Цена за 1 ${unit || 'шт.'}: ${amount(need, unit)} × ${rub(k)} = ${rub(k * need)}.`;
+    }
+    els.priceNote.textContent = text;
+  }
+  for (const input of [els.fNeed, els.fUnit, els.fPrice]) input.addEventListener('input', updatePriceNote);
+
+  // ---------- overlays ----------
+  function syncScrollLock() {
+    const open = !els.sheet.hidden || !els.gallery.hidden || !els.archiveSheet.hidden || !els.login.hidden;
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function renderOverlays() {
+    const wasHidden = els.login.hidden;
+    els.login.hidden = status !== 'auth';
+    if (wasHidden && !els.login.hidden) setTimeout(() => els.lPass.focus(), 30);
+    syncScrollLock();
+    renderGallery();
+    renderPhotoGrid();
+    renderArchive();
+  }
+
+  // ---------- photos ----------
+  const photoUrl = (id, thumb) => '/pokupki/photo?id=' + id + (thumb ? '&s=t' : '');
+  const authError = () => Object.assign(new Error('auth'), { code: 'auth' });
+
+  async function photoRequest(op, itemId, extra, body) {
+    const q = new URLSearchParams({ op, item: itemId, ...extra });
+    const r = await fetch('/pokupki/photo?' + q, {
+      method: 'POST', credentials: 'same-origin',
+      headers: body ? { 'Content-Type': 'image/jpeg' } : {}, body,
+    });
+    if (r.status === 401) throw authError();
+    if (!r.ok) {
+      let msg = '';
+      try { msg = (await r.json()).error || ''; } catch (e) {}
+      throw new Error(msg || 'Не удалось сохранить фото. Попробуйте ещё раз.');
+    }
+    return r.json();
+  }
+
+  // The phone picture is shrunk and re-encoded before upload: faster, and no EXIF or odd formats reach the server.
+  async function shrink(file) {
+    const MAX = 1600;
+    let src;
+    try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (e) {
+      src = await new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Не удалось открыть это фото.')); };
+        img.src = url;
+      });
+    }
+    const w = src.width || src.naturalWidth, h = src.height || src.naturalHeight;
+    const k = Math.min(1, MAX / Math.max(w, h));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(w * k));
+    canvas.height = Math.max(1, Math.round(h * k));
+    const g = canvas.getContext('2d');
+    g.fillStyle = '#fff';
+    g.fillRect(0, 0, canvas.width, canvas.height);
+    g.drawImage(src, 0, 0, canvas.width, canvas.height);
+    if (src.close) src.close();
+    return new Promise((resolve, reject) =>
+      canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Не удалось обработать фото.'))), 'image/jpeg', 0.82));
+  }
+
+  function renderPhotoGrid() {
+    if (els.sheet.hidden || !sheetId) return;
+    const it = items.get(sheetId);
+    const photos = it ? it.photos : [];
+    els.photoGrid.replaceChildren();
+    photos.forEach((pid, i) => {
+      const cell = el('div', 'pcell');
+      cell.dataset.photo = pid;
+      const img = document.createElement('img');
+      img.src = photoUrl(pid, true);
+      img.alt = `Фото ${i + 1}`;
+      img.loading = 'lazy';
+      cell.append(img);
+      if (i === 0) cell.append(el('span', 'pmain', 'Главное'));
+      else {
+        const star = el('button', 'pact star', '★');
+        star.type = 'button';
+        star.dataset.role = 'pmain';
+        star.setAttribute('aria-label', `Сделать фото ${i + 1} главным`);
+        cell.append(star);
+      }
+      const armed = armedPhoto === pid;
+      const del = el('button', 'pact del' + (armed ? ' armed' : ''), armed ? 'Точно?' : '✕');
+      del.type = 'button';
+      del.dataset.role = 'pdel';
+      del.setAttribute('aria-label', armed ? 'Подтвердить удаление фото' : `Удалить фото ${i + 1}`);
+      cell.append(del);
+      els.photoGrid.append(cell);
+    });
+    els.photosNote.textContent = photos.length ? `${photos.length} из ${MAX_PHOTOS}` : 'пока нет';
+    els.photoAdd.setAttribute('aria-disabled', String(photoBusy || photos.length >= MAX_PHOTOS));
+  }
+
+  function photoFailed(err) {
+    if (err && err.code === 'auth') { requireLogin(); return; }
+    formError(err && err.message ? err.message : 'Не удалось сохранить фото.');
+  }
+
+  async function runPhotoOp(fn) {
+    photoBusy = true;
+    els.formErr.hidden = true;
+    renderPhotoGrid();
+    try { await fn(); await db.reload(); }
+    catch (err) { photoFailed(err); }
+    finally { photoBusy = false; renderPhotoGrid(); }
+  }
+
+  els.photoGrid.addEventListener('click', async e => {
+    const b = e.target.closest('button[data-role]');
+    if (!b || !sheetId || photoBusy) return;
+    const pid = b.closest('[data-photo]').dataset.photo;
+    const itemId = sheetId;
+    if (b.dataset.role === 'pdel' && armedPhoto !== pid) { armedPhoto = pid; renderPhotoGrid(); return; }
+    armedPhoto = null;
+    await runPhotoOp(() => photoRequest(b.dataset.role === 'pmain' ? 'main' : 'del', itemId, { photo: pid }));
+  });
+
+  els.photoInput.addEventListener('change', async () => {
+    const files = [...els.photoInput.files];
+    els.photoInput.value = '';
+    const itemId = sheetId;
+    if (!files.length || !itemId || photoBusy) return;
+    const room = MAX_PHOTOS - (items.get(itemId)?.photos.length || 0);
+    const batch = files.slice(0, Math.max(0, room));
+    if (!batch.length) { formError(`У продукта уже ${MAX_PHOTOS} фото.`); return; }
+    await runPhotoOp(async () => {
+      for (let i = 0; i < batch.length; i++) {
+        els.photosNote.textContent = `Загружаю ${i + 1} из ${batch.length}…`;
+        await photoRequest('add', itemId, {}, await shrink(batch[i]));
+      }
+    });
+    if (files.length > batch.length) formError(`Добавлено ${batch.length}, больше ${MAX_PHOTOS} фото у продукта быть не может.`);
+  });
+
+  // ---------- gallery ----------
+  function openGallery(id, opener) {
+    const it = items.get(id);
+    if (!it || !it.photos.length) return;
+    galleryId = id;
+    galleryIdx = 0;
+    galleryOpener = opener || document.activeElement;
+    els.gallery.hidden = false;
+    els.gImg.dataset.photo = '';
+    syncScrollLock();
+    renderGallery();
+    els.gClose.focus();
+  }
+  function closeGallery() {
+    if (els.gallery.hidden) return;
+    els.gallery.hidden = true;
+    galleryId = null;
+    syncScrollLock();
+    if (galleryOpener && document.contains(galleryOpener)) galleryOpener.focus({ preventScroll: true });
+  }
+  function galleryStep(d) {
+    const it = items.get(galleryId);
+    if (!it || it.photos.length < 2) return;
+    galleryIdx = (galleryIdx + d + it.photos.length) % it.photos.length;
+    renderGallery();
+  }
+  function renderGallery() {
+    if (els.gallery.hidden) return;
+    const it = items.get(galleryId);
+    if (!it || !it.photos.length) { closeGallery(); return; }
+    const n = it.photos.length;
+    galleryIdx = clamp(galleryIdx, 0, n - 1);
+    const pid = it.photos[galleryIdx];
+    els.gTitle.textContent = it.name || 'без названия';
+    els.gCount.textContent = `${galleryIdx + 1} из ${n}`;
+    if (els.gImg.dataset.photo !== pid) { els.gImg.dataset.photo = pid; els.gImg.src = photoUrl(pid); }
+    els.gImg.alt = `${it.name || 'Продукт'}: фото ${galleryIdx + 1} из ${n}`;
+    els.gPrev.hidden = els.gNext.hidden = els.gStrip.hidden = n < 2;
+    els.gStrip.replaceChildren();
+    it.photos.forEach((id, i) => {
+      const b = el('button');
+      b.type = 'button';
+      b.dataset.idx = String(i);
+      b.setAttribute('aria-label', `Фото ${i + 1}`);
+      b.setAttribute('aria-current', String(i === galleryIdx));
+      const img = document.createElement('img');
+      img.src = photoUrl(id, true);
+      img.alt = '';
+      b.append(img);
+      els.gStrip.append(b);
+    });
+  }
+  els.gClose.addEventListener('click', closeGallery);
+  els.gPrev.addEventListener('click', () => galleryStep(-1));
+  els.gNext.addEventListener('click', () => galleryStep(1));
+  els.gStage.addEventListener('click', e => { if (e.target === els.gStage) closeGallery(); });
+  els.gStrip.addEventListener('click', e => {
+    const b = e.target.closest('button[data-idx]');
+    if (b) { galleryIdx = +b.dataset.idx; renderGallery(); }
+  });
+  let swipeX = null;
+  els.gStage.addEventListener('touchstart', e => { swipeX = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+  els.gStage.addEventListener('touchend', e => {
+    if (swipeX === null) return;
+    const dx = e.changedTouches[0].clientX - swipeX;
+    swipeX = null;
+    if (Math.abs(dx) > 50) galleryStep(dx < 0 ? 1 : -1);
+  });
+
+  // ---------- archive ----------
+  async function archiveItem(id) {
+    const name = items.get(id)?.name || 'Продукт';
+    await queue(id, () => db.doc('items/' + id).update({ archived: true }));
+    closeSheet();
+    showToast(`«${name}» — в архиве`, async () => {
+      try {
+        await queue(id, () => db.doc('items/' + id).update({ archived: false }));
+        showToast(`«${name}» снова в списке`);
+      } catch (e) { showToast(errText(e)); }
+    });
+  }
+  function archMeta(it) {
+    const parts = [amount(it.need, it.unit)];
+    if (priceOf(it)) parts.push(rub(totalCost(it)));
+    if (it.photos.length) parts.push(`${it.photos.length} фото`);
+    if (it.archivedAt) parts.push('убран ' + new Date(it.archivedAt * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }));
+    return parts.join(' · ');
+  }
+  function renderArchive() {
+    if (els.archiveSheet.hidden) return;
+    const rows = [...archive.values()].sort((a, b) => b.archivedAt - a.archivedAt);
+    els.archEmpty.hidden = rows.length > 0;
+    els.archList.replaceChildren();
+    for (const it of rows) {
+      const li = el('li', 'arch-item');
+      li.dataset.id = it.id;
+      let thumb;
+      if (it.photos.length) {
+        thumb = document.createElement('img');
+        thumb.className = 'a-thumb';
+        thumb.src = photoUrl(it.photos[0], true);
+        thumb.alt = '';
+        thumb.loading = 'lazy';
+      } else thumb = el('span', 'a-thumb');
+      const info = el('div');
+      info.append(el('div', 'a-name', it.name || 'без названия'), el('div', 'a-meta', archMeta(it)));
+      const acts = el('div', 'a-acts');
+      const back = el('button', 'btn small primary', 'Вернуть');
+      back.type = 'button';
+      back.dataset.role = 'restore';
+      const armed = armedArchive === it.id;
+      const del = el('button', 'btn small danger' + (armed ? ' armed' : ''), armed ? 'Точно удалить?' : 'Удалить');
+      del.type = 'button';
+      del.dataset.role = 'purge';
+      acts.append(back, del);
+      li.append(thumb, info, acts);
+      els.archList.append(li);
+    }
+  }
+  function openArchive() {
+    armedArchive = null;
+    els.archiveSheet.hidden = false;
+    syncScrollLock();
+    renderArchive();
+    els.archClose.focus();
+  }
+  function closeArchive() {
+    els.archiveSheet.hidden = true;
+    armedArchive = null;
+    syncScrollLock();
+    if (!els.archiveBtn.hidden) els.archiveBtn.focus({ preventScroll: true });
+  }
+  els.archiveBtn.addEventListener('click', openArchive);
+  els.archiveSheet.addEventListener('click', async e => {
+    if (e.target.closest('[data-close-archive]')) { closeArchive(); return; }
+    const b = e.target.closest('button[data-role]');
+    if (!b) return;
+    const id = b.closest('[data-id]').dataset.id;
+    const name = archive.get(id)?.name || 'Продукт';
+    try {
+      if (b.dataset.role === 'restore') {
+        await queue(id, () => db.doc('items/' + id).update({ archived: false }));
+        showToast(`«${name}» снова в списке`);
+      } else if (armedArchive !== id) {
+        armedArchive = id;
+        renderArchive();
+      } else {
+        armedArchive = null;
+        await queue(id, () => db.doc('items/' + id).delete());
+        showToast(`«${name}» удалён насовсем`);
+      }
+    } catch (err) {
+      if (err && err.code === 'auth') requireLogin(); else showToast(errText(err));
+    }
+  });
+
+  // ---------- login ----------
+  function requireLogin() {
+    status = 'auth';
+    items = new Map();
+    archive = new Map();
+    editing = false;
+    openId = null;
+    closeGallery();
+    closeSheet();
+    if (!els.archiveSheet.hidden) { els.archiveSheet.hidden = true; armedArchive = null; }
+    hideToast();
+    render();
+  }
+  els.loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const password = els.lPass.value.normalize('NFC');
+    if (!password) return;
+    els.loginBtn.disabled = true;
+    els.loginErr.hidden = true;
+    let ok = false;
+    try {
+      const r = await fetch('/pokupki/api', {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', password }),
+      });
+      if (!r.ok) {
+        let msg = 'Не удалось войти. Попробуйте ещё раз.';
+        try { msg = (await r.json()).error || msg; } catch (err) {}
+        throw new Error(msg);
+      }
+      ok = true;
+    } catch (err) {
+      els.loginErr.textContent = err.message;
+      els.loginErr.hidden = false;
+      els.lPass.select();
+    }
+    if (ok) {
+      els.lPass.value = '';
+      status = 'loading';
+      render();
+      try { await db.reload(); }
+      catch (err) {
+        if (err && err.code === 'auth') requireLogin();
+        else { status = 'unavailable'; render(); }
+      }
+    }
+    els.loginBtn.disabled = false;
+  });
+  els.logoutBtn.addEventListener('click', async () => {
+    try {
+      await fetch('/pokupki/api', {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout' }),
+      });
+    } catch (e) {}
+    requireLogin();
+  });
 
   // ---------- data ----------
   render();
@@ -1300,11 +1857,14 @@ h1 .hand {
   function subscribe() {
     db.collection('items').onSnapshot(snap => {
       const next = new Map();
+      const arch = new Map();
       for (const d of snap.docs) {
         if (!d.exists) continue;
-        next.set(d.id, parseItem(d.id, d.data() || {}));
+        const it = parseItem(d.id, d.data() || {});
+        (it.archived ? arch : next).set(d.id, it);
       }
       items = next;
+      archive = arch;
       for (const id of [...local.keys()]) if (!items.has(id)) { local.delete(id); dirty.delete(id); }
       for (const id of settled) if (!dirty.has(id)) local.delete(id);
       settled.clear();
@@ -1313,6 +1873,7 @@ h1 .hand {
       status = 'ready';
       render();
     }, err => {
+      if (err && err.code === 'auth') { requireLogin(); return; }
       if (err && err.code === 'unavailable' && resubscribes < 3) {
         resubscribes++;
         setTimeout(subscribe, 1500 * resubscribes);
@@ -1330,9 +1891,10 @@ h1 .hand {
   (async () => {
     async function request(method = 'GET', body) {
       const response = await fetch('/pokupki/api', {
-        method, cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+        method, cache: 'no-store', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : undefined
       });
+      if (response.status === 401) throw authError();
       if (!response.ok) throw new Error('Не удалось сохранить список. Попробуйте ещё раз.');
       return response.json();
     }
@@ -1345,7 +1907,7 @@ h1 .hand {
         receive({ docs: data.map(item => ({ id: item.id, exists: true, data: () => item })) });
       }
     }
-    async function mutate(body) { await request('POST', body); await refresh(); }
+    async function mutate(body) { const result = await request('POST', body); await refresh(); return result; }
     db = {
       collection: () => ({
         add: data => mutate({ action: 'add', data }),
@@ -1357,10 +1919,15 @@ h1 .hand {
       doc: path => ({
         update: data => mutate({ action: 'update', id: path.split('/')[1], data }),
         delete: () => mutate({ action: 'delete', id: path.split('/')[1] })
-      })
+      }),
+      reload: () => { previous = ''; return refresh(); }
     };
-    setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 2000);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh().catch(() => {}); });
+    const poll = () => {
+      if (document.hidden || status === 'auth') return;
+      refresh().catch(e => { if (e && e.code === 'auth') requireLogin(); });
+    };
+    setInterval(poll, 2000);
+    document.addEventListener('visibilitychange', poll);
     writeHint = true;
     canWrite = true;
     subscribe();
