@@ -87,10 +87,16 @@ try {
         foreach (['need','have','price','order'] as $key) {
             if (!is_numeric($data[$key] ?? null) || !is_finite((float)$data[$key]) || (float)$data[$key] < 0) throw new InvalidArgumentException($key);
         }
-        if ($data['need'] < 1 || $data['need'] > 999 || $data['have'] > $data['need'] || $data['price'] > 1000000000) throw new InvalidArgumentException('range');
-        // price is in rubles with kopecks: two decimals, whole amounts stay integers
-        $price = round((float)$data['price'], 2);
-        $data['price'] = $price == floor($price) ? (int)$price : $price;
+        // Amounts: штуки and граммы are whole numbers; only кг and л may be fractional (0.45), up to two decimals.
+        $need = round((float)$data['need'], 2);
+        $have = round((float)$data['have'], 2);
+        $fractional = in_array($data['unit'] ?? '', ['кг', 'л'], true);
+        if ($need > 99999 || $have > $need || $data['price'] > 1000000000) throw new InvalidArgumentException('range');
+        if ($fractional ? $need < 0.01 : ($need < 1 || $need != floor($need) || $have != floor($have))) throw new InvalidArgumentException('range');
+        // price is in rubles with kopecks
+        $data['need'] = pokupki_num($need);
+        $data['have'] = pokupki_num($have);
+        $data['price'] = pokupki_num((float)$data['price']);
         if (!in_array($data['cat'] ?? '', ['basic','meat','dairy','bakery','produce','extra'], true)) throw new InvalidArgumentException('cat');
         $stmt = $db->prepare('INSERT INTO items(id,data) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data');
         $stmt->execute([$id, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);

@@ -405,15 +405,16 @@ h1 .hand {
 }
 .sheet h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: .8125rem; font-weight: 500; color: var(--ink-2); }
-.field input {
+.field input, .field select {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--line); border-radius: 12px;
   background: var(--bg); color: var(--ink);
   font: inherit; font-size: 1rem; font-weight: 400;
 }
-.field input:focus { outline: 2px solid var(--basil); outline-offset: 0; border-color: transparent; }
-.row3 { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; }
+.field input:focus, .field select:focus { outline: 2px solid var(--basil); outline-offset: 0; border-color: transparent; }
+.row3 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; }
+.row3 .wide { grid-column: 1 / -1; }
 .field-note { margin: -6px 0 0; font-size: .8125rem; color: var(--ink-2); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
 .chips legend { padding: 0; margin-bottom: 8px; font-size: .8125rem; font-weight: 500; color: var(--ink-2); }
@@ -616,23 +617,21 @@ h1 .hand {
     </label>
     <div class="row3">
       <label class="field">Нужно
-        <input id="fNeed" name="need" type="number" inputmode="numeric" min="1" max="999" step="1" placeholder="1">
+        <input id="fNeed" name="need" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="1">
       </label>
-      <label class="field">Ед.
-        <input id="fUnit" name="unit" autocomplete="off" maxlength="8" list="units" placeholder="шт.">
+      <label class="field">Единица
+        <select id="fUnit" name="unit">
+          <option value="шт.">штуки</option>
+          <option value="г">граммы</option>
+          <option value="кг">килограммы</option>
+          <option value="л">литры</option>
+        </select>
       </label>
-      <label class="field">Цена за 1, ₽
+      <label class="field wide"><span id="priceLabel">Цена за 1 шт., ₽</span>
         <input id="fPrice" name="price" inputmode="decimal" autocomplete="off" maxlength="9" placeholder="0">
       </label>
     </div>
     <p class="field-note" id="priceNote"></p>
-    <datalist id="units">
-      <option value="шт."></option>
-      <option value="уп."></option>
-      <option value="кг"></option>
-      <option value="л"></option>
-      <option value="бут."></option>
-    </datalist>
     <fieldset class="chips" id="fCats">
       <legend>Раздел</legend>
     </fieldset>
@@ -706,7 +705,11 @@ h1 .hand {
     { key: 'extra',   label: 'Дополнительно' },
   ];
   const CAT_KEYS = new Set(CATS.map(c => c.key));
-  const MAX_NEED = 999;
+  const MAX_NEED = 99999;
+  const FRACTIONAL = new Set(['кг', 'л']);   // only kilograms and litres take fractions, e.g. 0,45 кг
+  const isFrac = unit => FRACTIONAL.has(unit);
+  const round2 = n => Math.round(n * 100) / 100;
+  const qtyOf = (unit, v) => (isFrac(unit) ? round2(v) : Math.round(v));
   const MAX_PHOTOS = 12;
   const ICON_CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-6.5"/></svg>';
   const ICON_PEN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
@@ -726,7 +729,7 @@ h1 .hand {
     fName: $('fName'), fNeed: $('fNeed'), fUnit: $('fUnit'), fPrice: $('fPrice'), fCats: $('fCats'),
     formErr: $('formErr'), delBtn: $('delBtn'), saveBtn: $('saveBtn'),
     resetBtn: $('resetBtn'), resetConfirm: $('resetConfirm'), resetYes: $('resetYes'), resetNo: $('resetNo'),
-    resetBox: $('resetBox'), archiveBtn: $('archiveBtn'), logoutBtn: $('logoutBtn'), priceNote: $('priceNote'),
+    resetBox: $('resetBox'), archiveBtn: $('archiveBtn'), logoutBtn: $('logoutBtn'), priceNote: $('priceNote'), priceLabel: $('priceLabel'),
     photosBox: $('photosBox'), photosNew: $('photosNew'), photoGrid: $('photoGrid'), photoAdd: $('photoAdd'),
     photoInput: $('photoInput'), photosNote: $('photosNote'),
     gallery: $('gallery'), gTitle: $('gTitle'), gCount: $('gCount'), gImg: $('gImg'), gPrev: $('gPrev'), gNext: $('gNext'),
@@ -779,11 +782,18 @@ h1 .hand {
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const priceOf = it => (Number.isFinite(+it.price) ? Math.round(Math.max(0, +it.price) * 100) / 100 : 0);
   const catOf = it => (CAT_KEYS.has(it.cat) ? it.cat : 'extra');
-  const haveOf = it => clamp(local.has(it.id) ? local.get(it.id) : it.have, 0, it.need);
-  const missOf = it => it.need - haveOf(it);
+  const normQty = (it, v) => clamp(qtyOf(it.unit, v), 0, it.need);
+  const haveOf = it => normQty(it, local.has(it.id) ? local.get(it.id) : it.have);
+  const missOf = it => round2(it.need - haveOf(it));
+  // Button step for the +/- in the panel: sensible for the unit (0,05 кг, 10 г, 1 шт.), the slider itself is finer.
+  const stepOf = it => {
+    if (isFrac(it.unit)) return it.need <= 2 ? 0.05 : it.need <= 10 ? 0.1 : 0.5;
+    if (it.unit === 'г') return it.need >= 1000 ? 100 : it.need >= 200 ? 50 : it.need >= 50 ? 10 : 1;
+    return 1;
+  };
   // The price is for one unit (шт., кг, л); money below is in kopecks.
-  const missCost = it => toKop(priceOf(it)) * missOf(it);
-  const totalCost = it => toKop(priceOf(it)) * it.need;
+  const missCost = it => Math.round(toKop(priceOf(it)) * missOf(it));
+  const totalCost = it => Math.round(toKop(priceOf(it)) * it.need);
   const amount = (n, unit) => (unit ? `${fmt.format(n)} ${unit}` : fmt.format(n));
   const showsQty = it => !!it.unit || it.need > 1;
   const byOrder = (a, b) => (+a.order || 0) - (+b.order || 0) || String(a.name).localeCompare(String(b.name), 'ru');
@@ -799,7 +809,7 @@ h1 .hand {
     let need = Number(data.need);
     let unit = typeof data.unit === 'string' ? data.unit.trim() : '';
     let legacy = false;
-    if (!(need >= 1)) {
+    if (!(need > 0)) {
       // older rows kept the amount as text, e.g. "30 шт."
       legacy = true;
       const text = typeof data.qty === 'string' ? data.qty.trim() : '';
@@ -807,14 +817,15 @@ h1 .hand {
       need = m ? parseFloat(m[1].replace(',', '.')) : 1;
       unit = m ? m[2].trim() : text;
     }
-    need = clamp(Math.round(need) || 1, 1, MAX_NEED);
+    const minQ = isFrac(unit) ? 0.01 : 1;
+    need = clamp(qtyOf(unit, need) || minQ, minQ, MAX_NEED);
     let have = Number(data.have);
     if (!Number.isFinite(have)) have = data.home ? need : 0;
     return {
       id,
       name: typeof data.name === 'string' ? data.name : '',
       need, unit,
-      have: clamp(Math.round(have), 0, need),
+      have: clamp(qtyOf(unit, have), 0, need),
       price: data.price,
       cat: data.cat,
       order: data.order,
@@ -1034,7 +1045,7 @@ h1 .hand {
     range.id = 'range-' + it.id;
     range.dataset.role = 'range';
     range.min = '0';
-    range.step = '1';
+    range.step = isFrac(it.unit) ? '0.01' : '1';
     range.max = String(it.need);
     range.value = String(haveOf(it));
     range.setAttribute('aria-label', `Сколько есть: ${it.name}`);
@@ -1087,7 +1098,7 @@ h1 .hand {
     li.querySelector('.price').textContent = price ? rub(price) : '';
     rowBtn.querySelector('.vh').textContent = full
       ? ', есть дома'
-      : have > 0 ? `, дома ${have} из ${it.need}` : ', нужно купить';
+      : have > 0 ? `, дома ${fmt.format(have)} из ${fmt.format(it.need)}` : ', нужно купить';
 
     const panel = li.querySelector('.panel');
     if (!panel) return;
@@ -1153,7 +1164,7 @@ h1 .hand {
   function setLocal(id, value) {
     const it = items.get(id);
     if (!it) return;
-    local.set(id, clamp(Math.round(value), 0, it.need));
+    local.set(id, normQty(it, value));
     dirty.add(id);
     settled.delete(id);
   }
@@ -1233,7 +1244,7 @@ h1 .hand {
     const it = items.get(id);
     if (!it) return;
     const cur = haveOf(it);
-    const next = clamp(cur + delta, 0, it.need);
+    const next = normQty(it, cur + delta);
     if (next === cur) return;
     if (!gestureStart.has(id)) gestureStart.set(id, cur);
     setLocal(id, next);
@@ -1333,7 +1344,7 @@ h1 .hand {
         });
       }
     }
-    else if (role === 'dec' || role === 'inc') step(id, role === 'inc' ? 1 : -1);
+    else if (role === 'dec' || role === 'inc') step(id, (role === 'inc' ? 1 : -1) * stepOf(items.get(id)));
     else if (role === 'none' || role === 'all') setQuick(id, role === 'all');
   });
 
@@ -1398,14 +1409,47 @@ h1 .hand {
     els.fCats.append(lab);
   }
 
+  // The unit list is fixed; an older product with another unit (бут., уп.) keeps it as one extra choice so nothing is lost.
+  function unitChoice(u) {
+    const t = (u || '').trim();
+    const l = t.toLowerCase().replace(/\.$/, '');
+    if (l === '' || l === 'шт') return 'шт.';
+    if (l === 'кг' || l === 'л' || l === 'г') return l;
+    return t;
+  }
+  function syncUnitUi() {
+    els.fNeed.inputMode = isFrac(els.fUnit.value) ? 'decimal' : 'numeric';
+    updatePriceNote();
+  }
+  function setUnitSelect(u) {
+    for (const o of [...els.fUnit.options]) if (o.dataset.extra) o.remove();
+    const choice = unitChoice(u);
+    if (![...els.fUnit.options].some(o => o.value === choice)) {
+      const o = document.createElement('option');
+      o.value = choice; o.textContent = choice; o.dataset.extra = '1';
+      els.fUnit.append(o);
+    }
+    els.fUnit.value = choice;
+    syncUnitUi();
+  }
+  // "1", "0,45" -> number; null when the text does not fit the unit (fractions only for кг and л).
+  function parseNeed(raw, unit) {
+    const t = raw.trim().replace(',', '.');
+    if (t === '') return 1;
+    const frac = isFrac(unit);
+    if (!(frac ? /^\d{1,5}(?:\.\d{1,2})?$/ : /^\d{1,5}$/).test(t)) return null;
+    const n = Number(t);
+    return n >= (frac ? 0.01 : 1) && n <= MAX_NEED ? n : null;
+  }
+
   function openSheet(id, opener) {
     sheetId = id || null;
     sheetOpener = opener || document.activeElement;
     const it = id ? items.get(id) : null;
     els.sheetTitle.textContent = it ? 'Изменить продукт' : 'Новый продукт';
     els.fName.value = it ? (it.name || '') : '';
-    els.fNeed.value = it ? String(it.need) : '';
-    els.fUnit.value = it ? it.unit : '';
+    els.fNeed.value = it ? String(it.need).replace('.', ',') : '';
+    setUnitSelect(it ? it.unit : 'шт.');
     els.fPrice.value = it && priceOf(it) ? (Number.isInteger(priceOf(it)) ? String(priceOf(it)) : priceOf(it).toFixed(2).replace('.', ',')) : '';
     const cat = it ? catOf(it) : (mode === 'shop' ? 'extra' : 'basic');
     els.form.querySelector(`input[name="cat"][value="${cat}"]`).checked = true;
@@ -1447,12 +1491,16 @@ h1 .hand {
     e.preventDefault();
     const name = els.fName.value.trim().replace(/\s+/g, ' ');
     if (!name) { formError('Напишите, что купить.'); els.fName.focus(); return; }
-    const rawNeed = els.fNeed.value.trim();
-    const need = rawNeed === '' ? 1 : Math.round(Number(rawNeed));
-    if (!Number.isFinite(need) || need < 1 || need > MAX_NEED) {
-      formError(`Сколько нужно: целое число от 1 до ${MAX_NEED}.`); els.fNeed.focus(); return;
-    }
     const unit = els.fUnit.value.trim().replace(/\s+/g, ' ');
+    const need = parseNeed(els.fNeed.value, unit);
+    if (need === null) {
+      formError(isFrac(unit)
+        ? 'Сколько нужно: число не больше двух знаков после запятой, например 0,45.'
+        : /[.,]/.test(els.fNeed.value)
+          ? 'Дробное количество можно только для килограммов и литров. Для штук и граммов нужно целое число.'
+          : `Сколько нужно: целое число от 1 до ${MAX_NEED}.`);
+      els.fNeed.focus(); return;
+    }
     const rawPrice = els.fPrice.value.trim();
     if (rawPrice !== '' && !PRICE_RE.test(rawPrice)) { formError('Цена — число с копейками не больше чем до двух знаков, например 250 или 89,90.'); els.fPrice.focus(); return; }
     const price = rawPrice === '' ? 0 : Math.round(Number(rawPrice.replace(',', '.')) * 100) / 100;
@@ -1464,7 +1512,10 @@ h1 .hand {
     try {
       if (editingId) {
         const it = items.get(editingId);
-        if (it && haveOf(it) > need) { body.have = need; local.delete(editingId); dirty.delete(editingId); }
+        if (it) {   // keep "have" valid for the new amount and unit: not above the need, whole for штуки and граммы
+          const h = clamp(qtyOf(unit, haveOf(it)), 0, need);
+          if (h !== it.have || local.has(editingId)) { body.have = h; local.delete(editingId); dirty.delete(editingId); }
+        }
         await queue(editingId, () => db.doc('items/' + editingId).update(body));
         closeSheet();
         showToast('Сохранено');
@@ -1491,15 +1542,17 @@ h1 .hand {
   function updatePriceNote() {
     const unit = els.fUnit.value.trim().replace(/\s+/g, ' ');
     const raw = els.fPrice.value.trim();
-    const need = Math.round(Number(els.fNeed.value.trim() || 1));
-    let text = `Цена за 1 ${unit || 'шт.'}: всего = цена × сколько нужно.`;
-    if (PRICE_RE.test(raw) && Number.isFinite(need) && need >= 1 && need <= MAX_NEED) {
+    const need = parseNeed(els.fNeed.value, unit);
+    els.priceLabel.textContent = `Цена за 1 ${unit}, ₽`;
+    let text = `Цена за 1 ${unit}: всего = цена × сколько нужно.`;
+    if (PRICE_RE.test(raw) && need !== null) {
       const k = toKop(Number(raw.replace(',', '.')));
-      if (k) text = `Цена за 1 ${unit || 'шт.'}: ${amount(need, unit)} × ${rub(k)} = ${rub(k * need)}.`;
+      if (k) text = `Цена за 1 ${unit}: ${amount(need, unit)} × ${rub(k)} = ${rub(Math.round(k * need))}.`;
     }
     els.priceNote.textContent = text;
   }
-  for (const input of [els.fNeed, els.fUnit, els.fPrice]) input.addEventListener('input', updatePriceNote);
+  for (const input of [els.fNeed, els.fPrice]) input.addEventListener('input', updatePriceNote);
+  els.fUnit.addEventListener('change', syncUnitUi);
 
   // ---------- overlays ----------
   function syncScrollLock() {

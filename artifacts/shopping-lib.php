@@ -5,6 +5,12 @@ declare(strict_types=1);
 const POKUPKI_COOKIE = 'pokupki_s';
 const POKUPKI_SESSION_DAYS = 30;
 
+// Whole numbers stay integers in JSON, others keep at most two decimals (price in rubles, amount in кг or л).
+function pokupki_num(float $v): int|float {
+    $v = round($v, 2);
+    return $v == floor($v) ? (int)$v : $v;
+}
+
 function pokupki_dir(): string {
     return rtrim(getenv('POKUPKI_DATA') ?: '/var/lib/pokupki', '/');
 }
