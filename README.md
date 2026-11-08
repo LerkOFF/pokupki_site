@@ -6,7 +6,7 @@
 
 | Путь | Что это |
 | --- | --- |
-| `artifacts/shopping-list.html` | страница: список, фото и галерея, архив, вход, тема, режим магазина |
+| `artifacts/shopping-list.html` | страница: список по местам (магазин, аптека и т.д.), фото и галерея, архив, вход, тема, режим магазина |
 | `artifacts/shopping-api.php` | API списка и вход (кука на 30 дней), SQLite `/var/lib/pokupki/shopping.sqlite` |
 | `artifacts/shopping-photo.php` | загрузка, показ, смена главного и удаление фото, файлы в `/var/lib/pokupki/photos` |
 | `artifacts/shopping-lib.php` | общий код: база, сессия, миграция цен |

@@ -175,7 +175,7 @@ h1 .hand {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   padding: 14px 16px 4px;
 }
-.sec-head h2 {
+.sec-head h2, .sec-head h3 {
   margin: 0;
   font-family: var(--f-display);
   font-weight: 500;
@@ -184,6 +184,32 @@ h1 .hand {
 }
 .sec-meta { font-size: .8125rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .items { list-style: none; margin: 0; padding: 0 0 6px; }
+/* places: where to buy (Магазин, Аптека, Пятёрочка) */
+.place { display: flex; flex-direction: column; gap: 10px; }
+.place + .place { margin-top: 10px; }
+.place-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 0 4px;
+}
+.place-head h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  text-wrap: balance;
+}
+.places { display: flex; flex-wrap: wrap; gap: 8px; }
+.pchip {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--ink);
+  font: inherit; font-size: .875rem; cursor: pointer;
+}
+.pchip .n { margin-left: 5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pchip[aria-pressed="true"] { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
+.pchip[aria-pressed="true"] .n { color: inherit; opacity: .8; }
+.pchip:focus-visible { outline: 2px solid var(--basil); outline-offset: 2px; }
 
 .item { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .26s ease, opacity .26s ease, background-color .15s ease; }
 .item-in { overflow: hidden; min-height: 0; }
@@ -572,6 +598,7 @@ h1 .hand {
     </button>
   </div>
 
+  <div class="places" id="placeBar" role="group" aria-label="Где купить" hidden></div>
   <main class="list" id="list"></main>
   <p class="state" id="state"><strong>Загружаю список…</strong>Сейчас подтянутся продукты.</p>
 
@@ -632,8 +659,14 @@ h1 .hand {
       </label>
     </div>
     <p class="field-note" id="priceNote"></p>
+    <fieldset class="chips" id="fPlaces">
+      <legend>Где купить</legend>
+    </fieldset>
+    <label class="field" id="fPlaceNewBox" hidden>Название места
+      <input id="fPlaceNew" name="placeNew" autocomplete="off" maxlength="30" placeholder="например, Пятёрочка">
+    </label>
     <fieldset class="chips" id="fCats">
-      <legend>Раздел</legend>
+      <legend>Вид продукта</legend>
     </fieldset>
     <div class="photos" id="photosBox" hidden>
       <div class="photos-head"><span>Фото</span><span id="photosNote"></span></div>
@@ -705,6 +738,10 @@ h1 .hand {
     { key: 'extra',   label: 'Дополнительно' },
   ];
   const CAT_KEYS = new Set(CATS.map(c => c.key));
+  // Where to buy. A product without a place is bought in the usual shop; people can add their own places (Пятёрочка, Парус).
+  const HOME_PLACE = 'Магазин';
+  const PLACES = [HOME_PLACE, 'Аптека', 'Хозтовары', 'Рынок'];
+  const NEW_PLACE = '__new__';
   const MAX_NEED = 99999;
   const FRACTIONAL = new Set(['кг', 'л']);   // only kilograms and litres take fractions, e.g. 0,45 кг
   const isFrac = unit => FRACTIONAL.has(unit);
@@ -727,6 +764,7 @@ h1 .hand {
     toast: $('toast'), toastText: $('toastText'), toastAction: $('toastAction'),
     sheet: $('sheet'), form: $('form'), sheetTitle: $('sheetTitle'),
     fName: $('fName'), fNeed: $('fNeed'), fUnit: $('fUnit'), fPrice: $('fPrice'), fCats: $('fCats'),
+    fPlaces: $('fPlaces'), fPlaceNew: $('fPlaceNew'), fPlaceNewBox: $('fPlaceNewBox'), placeBar: $('placeBar'),
     formErr: $('formErr'), delBtn: $('delBtn'), saveBtn: $('saveBtn'),
     resetBtn: $('resetBtn'), resetConfirm: $('resetConfirm'), resetYes: $('resetYes'), resetNo: $('resetNo'),
     resetBox: $('resetBox'), archiveBtn: $('archiveBtn'), logoutBtn: $('logoutBtn'), priceNote: $('priceNote'), priceLabel: $('priceLabel'),
@@ -750,6 +788,7 @@ h1 .hand {
   let armedPhoto = null;         // photo whose delete button was tapped once
   let armedArchive = null;       // archived product whose "delete forever" was tapped once
   let mode = 'all';              // all | shop
+  let placeFilter = null;        // show only this place, null for every place
   let editing = false;
   let openId = null;             // row whose slider is open
   const local = new Map();       // id -> have, shown before the store confirms it
@@ -765,6 +804,7 @@ h1 .hand {
   let dragId = null;
 
   try { if (localStorage.getItem('mode') === 'shop') mode = 'shop'; } catch (e) {}
+  try { placeFilter = localStorage.getItem('place') || null; } catch (e) {}
 
   // ---------- helpers ----------
   const fmt = new Intl.NumberFormat('ru-RU');
@@ -782,6 +822,13 @@ h1 .hand {
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const priceOf = it => (Number.isFinite(+it.price) ? Math.round(Math.max(0, +it.price) * 100) / 100 : 0);
   const catOf = it => (CAT_KEYS.has(it.cat) ? it.cat : 'extra');
+  const placeOf = it => it.place || HOME_PLACE;
+  // Places in display order: the fixed ones first, then the ones people added, alphabetically.
+  const placesIn = list => {
+    const seen = new Set(list.map(placeOf));
+    const own = [...seen].filter(p => !PLACES.includes(p)).sort((a, b) => a.localeCompare(b, 'ru'));
+    return [...PLACES.filter(p => seen.has(p)), ...own];
+  };
   const normQty = (it, v) => clamp(qtyOf(it.unit, v), 0, it.need);
   const haveOf = it => normQty(it, local.has(it.id) ? local.get(it.id) : it.have);
   const missOf = it => round2(it.need - haveOf(it));
@@ -828,6 +875,7 @@ h1 .hand {
       have: clamp(qtyOf(unit, have), 0, need),
       price: data.price,
       cat: data.cat,
+      place: typeof data.place === 'string' && data.place.trim() ? data.place.trim() : HOME_PLACE,
       order: data.order,
       legacy,
       photos: Array.isArray(data.photos) ? data.photos.filter(x => typeof x === 'string' && /^[a-f0-9]{32}$/.test(x)) : [],
@@ -928,29 +976,51 @@ h1 .hand {
     const focusRole = ae && ae.dataset ? ae.dataset.role : null;
 
     els.list.replaceChildren();
-    let shown = 0;
-    for (const cat of CATS) {
-      const inCat = all.filter(it => catOf(it) === cat.key);
-      const visible = shopView ? inCat.filter(it => missOf(it) > 0 || lingering.has(it.id)) : inCat;
-      if (!visible.length) continue;
-      shown += visible.length;
-
+    const visibleOf = list => (shopView ? list.filter(it => missOf(it) > 0 || lingering.has(it.id)) : list);
+    const places = placesIn(all);
+    const counts = places.map(p => [p, visibleOf(all.filter(it => placeOf(it) === p)).length]).filter(c => c[1]);
+    if (placeFilter && status === 'ready' && all.length && !counts.some(c => c[0] === placeFilter)) setPlaceFilter(null, false);
+    renderPlaceBar(counts);
+    // Places get their own headings once there is more than the usual shop.
+    const grouped = places.length > 1 || (places.length === 1 && places[0] !== HOME_PLACE);
+    const meta = list => {
+      if (shopView) { const sum = list.reduce((s, it) => s + missCost(it), 0); return sum ? rub(sum) : ''; }
+      return `дома ${list.filter(it => missOf(it) <= 0).length} из ${list.length}`;
+    };
+    const card = (title, list, tag) => {
       const sec = el('section', 'sec');
       const head = el('div', 'sec-head');
-      head.append(el('h2', null, cat.label));
-      if (shopView) {
-        const sum = inCat.reduce((s, it) => s + missCost(it), 0);
-        if (sum) head.append(el('span', 'sec-meta', rub(sum)));
-      } else {
-        const full = inCat.filter(it => missOf(it) <= 0).length;
-        head.append(el('span', 'sec-meta', `дома ${full} из ${inCat.length}`));
-      }
-      sec.append(head);
-
+      head.append(el(tag, null, title));
+      const m = meta(list);
+      if (m) head.append(el('span', 'sec-meta', m));
       const ul = el('ul', 'items');
-      for (const it of visible) ul.append(buildItem(it));
-      sec.append(ul);
-      els.list.append(sec);
+      for (const it of visibleOf(list)) ul.append(buildItem(it));
+      sec.append(head, ul);
+      return sec;
+    };
+    let shown = 0;
+    for (const place of places) {
+      if (placeFilter && place !== placeFilter) continue;
+      const inPlace = all.filter(it => placeOf(it) === place);
+      const groups = CATS.map(cat => [cat, inPlace.filter(it => catOf(it) === cat.key)]).filter(g => visibleOf(g[1]).length);
+      if (!groups.length) continue;
+      shown += visibleOf(inPlace).length;
+      if (!grouped) {
+        for (const [cat, list] of groups) els.list.append(card(cat.label, list, 'h2'));
+      } else if (groups.length === 1) {
+        // one kind of product in this place (ибупрофен in Аптека): one card named after the place
+        const wrap = el('div', 'place');
+        wrap.append(card(place, groups[0][1], 'h2'));
+        els.list.append(wrap);
+      } else {
+        const wrap = el('div', 'place');
+        const head = el('div', 'place-head');
+        head.append(el('h2', null, place));
+        if (shopView) { const m = meta(inPlace); if (m) head.append(el('span', 'sec-meta', m)); }
+        wrap.append(head);
+        for (const [cat, list] of groups) wrap.append(card(cat.label, list, 'h3'));
+        els.list.append(wrap);
+      }
     }
 
     let msg = null;
@@ -971,6 +1041,30 @@ h1 .hand {
       if (target) target.focus({ preventScroll: true });
     }
   }
+
+  function renderPlaceBar(counts) {
+    els.placeBar.hidden = counts.length < 2;
+    if (els.placeBar.hidden) { els.placeBar.replaceChildren(); return; }
+    const total = counts.reduce((s, c) => s + c[1], 0);
+    const chip = (value, label, n) => {
+      const b = el('button', 'pchip');
+      b.type = 'button';
+      b.dataset.place = value;
+      b.setAttribute('aria-pressed', String((placeFilter || '') === value));
+      b.append(document.createTextNode(label), el('span', 'n', String(n)));
+      return b;
+    };
+    els.placeBar.replaceChildren(chip('', 'Везде', total), ...counts.map(c => chip(c[0], c[0], c[1])));
+  }
+  function setPlaceFilter(p, again = true) {
+    placeFilter = p || null;
+    try { if (placeFilter) localStorage.setItem('place', placeFilter); else localStorage.removeItem('place'); } catch (e) {}
+    if (again) { openId = null; render(); }
+  }
+  els.placeBar.addEventListener('click', e => {
+    const b = e.target.closest('[data-place]');
+    if (b) setPlaceFilter(b.dataset.place);
+  });
 
   function buildItem(it) {
     const li = el('li', 'item');
@@ -1409,6 +1503,29 @@ h1 .hand {
     els.fCats.append(lab);
   }
 
+  // Place chips: the fixed places, the ones already used in the list, and «Другое» for a new one.
+  function fillPlaces(current) {
+    const used = placesIn([...items.values(), ...archive.values()]);
+    const list = [...PLACES, ...used.filter(p => !PLACES.includes(p))];
+    if (!list.includes(current)) list.push(current);
+    els.fPlaces.querySelectorAll('.chip').forEach(n => n.remove());
+    for (const p of [...list, NEW_PLACE]) {
+      const lab = el('label', 'chip');
+      const inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = 'place'; inp.value = p;
+      inp.checked = p === current;
+      lab.append(inp, el('span', null, p === NEW_PLACE ? 'Другое…' : p));
+      els.fPlaces.append(lab);
+    }
+    els.fPlaceNew.value = '';
+    els.fPlaceNewBox.hidden = true;
+  }
+  els.fPlaces.addEventListener('change', () => {
+    const v = (els.fPlaces.querySelector('input:checked') || {}).value;
+    els.fPlaceNewBox.hidden = v !== NEW_PLACE;
+    if (v === NEW_PLACE) els.fPlaceNew.focus();
+  });
+
   // The unit list is fixed; an older product with another unit (бут., уп.) keeps it as one extra choice so nothing is lost.
   function unitChoice(u) {
     const t = (u || '').trim();
@@ -1453,6 +1570,7 @@ h1 .hand {
     els.fPrice.value = it && priceOf(it) ? (Number.isInteger(priceOf(it)) ? String(priceOf(it)) : priceOf(it).toFixed(2).replace('.', ',')) : '';
     const cat = it ? catOf(it) : (mode === 'shop' ? 'extra' : 'basic');
     els.form.querySelector(`input[name="cat"][value="${cat}"]`).checked = true;
+    fillPlaces(it ? placeOf(it) : (placeFilter || HOME_PLACE));
     els.delBtn.hidden = !it;
     els.photosBox.hidden = !it;
     els.photosNew.hidden = !!it;
@@ -1505,7 +1623,12 @@ h1 .hand {
     if (rawPrice !== '' && !PRICE_RE.test(rawPrice)) { formError('Цена — число с копейками не больше чем до двух знаков, например 250 или 89,90.'); els.fPrice.focus(); return; }
     const price = rawPrice === '' ? 0 : Math.round(Number(rawPrice.replace(',', '.')) * 100) / 100;
     const cat = (els.form.querySelector('input[name="cat"]:checked') || {}).value || 'extra';
-    const body = { name, need, unit, price, cat };
+    let place = (els.fPlaces.querySelector('input:checked') || {}).value || HOME_PLACE;
+    if (place === NEW_PLACE) {
+      place = els.fPlaceNew.value.trim().replace(/\s+/g, ' ');
+      if (!place) { formError('Напишите, где купить, например «Пятёрочка».'); els.fPlaceNew.focus(); return; }
+    }
+    const body = { name, need, unit, price, cat, place };
 
     els.saveBtn.disabled = true;
     const editingId = sheetId;

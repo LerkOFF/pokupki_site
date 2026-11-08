@@ -75,7 +75,7 @@ try {
             if ((int)$db->query('SELECT COUNT(*) FROM items')->fetchColumn() >= 2000) throw new InvalidArgumentException('limit');
             $id = bin2hex(random_bytes(16));
         }
-        foreach (['name','need','unit','price','cat','have','order'] as $key) if (array_key_exists($key, $patch)) $data[$key] = $patch[$key];
+        foreach (['name','need','unit','price','cat','have','order','place'] as $key) if (array_key_exists($key, $patch)) $data[$key] = $patch[$key];
         // Photos are changed only through shopping-photo.php; archived moves a product out of the list and back.
         if ($action === 'update' && array_key_exists('archived', $patch)) {
             if (!is_bool($patch['archived'])) throw new InvalidArgumentException('archived');
@@ -98,6 +98,12 @@ try {
         $data['have'] = pokupki_num($have);
         $data['price'] = pokupki_num((float)$data['price']);
         if (!in_array($data['cat'] ?? '', ['basic','meat','dairy','bakery','produce','extra'], true)) throw new InvalidArgumentException('cat');
+        // place: where to buy (Аптека, Пятёрочка). Empty or missing means the usual shop.
+        if (array_key_exists('place', $data)) {
+            if (!is_string($data['place']) || !preg_match('/^.{0,30}$/usD', $data['place'])) throw new InvalidArgumentException('place');
+            $place = trim(preg_replace('/\s+/u', ' ', $data['place']));
+            if ($place === '' || $place === 'Магазин') unset($data['place']); else $data['place'] = $place;
+        }
         $stmt = $db->prepare('INSERT INTO items(id,data) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data');
         $stmt->execute([$id, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
     }
